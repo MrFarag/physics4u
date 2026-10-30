@@ -1,9 +1,5 @@
 // ============================================================
-// Physics4U | room.js — النسخة النهائية الكاملة
-// مبنية على index.js الأصلي:
-//   - محذوف: #file-viewer، #pv-bar، savePartA/B، #top، #splitter
-//   - مضاف: بث Firebase، قائمة الطلبة، خطة الدرس التفاعلية
-//   - محتفظ: كل أزرار التسجيل/المايك/السماعة/اللقطة/الحفظ
+// Physics4U | room.js — الجزء 1/2
 // ============================================================
 
 import { auth, database } from "../firebase.js";
@@ -148,8 +144,15 @@ let isAreaMode=false, areaSelection=null;
 let _clipboard = null;
 const CLIP_MARK = 'sabbora-board-item';
 
-// Firebase
+// ===== متغيرات الدور والصوت والبث =====
+let amTeacher = false;
+let currentUserId = '';
+let currentUserName = '';
+let isSpeakingAllowed = false;
+let pc = null;
+let remoteAudioEl = null;
 let unsubStudents = null;
+let unsubBoard = null;
 
 // ============================================================
 // ===== [3] — المساعدات العامة =====
@@ -525,8 +528,7 @@ function drawShape(tCtx, shape) {
         case 'double-arrow': tCtx.moveTo(s.x, s.y); tCtx.lineTo(e.x, e.y); tCtx.stroke(); drawArrowHead(tCtx, e, s, shape); drawArrowHead(tCtx, s, e, shape); tCtx.restore(); return;
         case 'resistor':
             tCtx.moveTo(A.x, A.y); tCtx.lineTo(A.x + ux * len * 0.2, A.y + uy * len * 0.2);
-            tCtx.lineTo(A.x + ux * len * 0.3 + px * amp, A.y + uy * len * 0.3 + py * amp);
-            tCtx.lineTo(A.x + ux * len * 0.4 - px * amp, A.y + uy * len * 0.4 - py * amp);
+                       tCtx.lineTo(A.x + ux * len * 0.4 - px * amp, A.y + uy * len * 0.4 - py * amp);
             tCtx.lineTo(A.x + ux * len * 0.5 + px * amp, A.y + uy * len * 0.5 + py * amp);
             tCtx.lineTo(A.x + ux * len * 0.6 - px * amp, A.y + uy * len * 0.6 - py * amp);
             tCtx.lineTo(A.x + ux * len * 0.7 + px * amp, A.y + uy * len * 0.7 + py * amp);
@@ -1077,7 +1079,7 @@ function showMenuAbove(menuId, triggerElement) {
     const mh = menu.offsetHeight || 200, mw = menu.offsetWidth || 240;
     let top = rect.top - mh - 5, left = rect.right - mw;
     if (top < 10) top = rect.bottom + 5;
-    if (left < 10) left = 10;
+       if (left < 10) left = 10;
     if (left + mw > window.innerWidth - 10) left = window.innerWidth - mw - 10;
     menu.style.top = top + 'px'; menu.style.left = left + 'px';
 }
@@ -1194,7 +1196,7 @@ function buildFhPopup() {
 }
 
 // ============================================================
-// ===== [14] — المايك والسماعة =====
+// ===== [14] — المايك والسماعة (للمدرس) =====
 // ============================================================
 async function toggleMic() {
     const btn = $('lb-mic');
@@ -1758,6 +1760,7 @@ async function saveRecordingInner() {
 }
 
 function toggleRecording() { if (rec) stopRecording(); else startRecording(); }
+
 // ============================================================
 // ===== [16] — المؤشر والضغط والسحب =====
 // ============================================================
@@ -2360,58 +2363,98 @@ async function saveAsJSON() {
 }
 
 // ============================================================
-// ===== [19] — Firebase: البث المباشر + الحضور =====
+// ===== [19] — Firebase: البث المباشر + الحضور + الصوت =====
 // ============================================================
 function initFirebaseSession() {
     const user = auth.currentUser;
     if (!user) return;
 
-    // 1) تسجيل المعلم كمتصل
-    const presenceRef = dbRef(database, 'live_session/teacher');
-    set(presenceRef, { online: true, since: Date.now() });
+    currentUserId = user.uid;
+    amTeacher = (user.email === 'mrfaragphysics@gmail.com');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    currentUserName = urlParams.get('name') || user.displayName || 'مستخدم';
+
+    if (amTeacher) {
+        document.body.classList.add('is-teacher');
+        document.body.classList.remove('is-student');
+    } else {
+        document.body.classList.remove('is-teacher');
+        document.body.classList.add('is-student');
+        const controls = $('studentControls');
+        if (controls) controls.style.display = 'flex';
+        if (cv) cv.style.pointerEvents = 'none';
+    }
+
+    const presencePath = amTeacher ? 'live_session/teacher' : `live_session/students/${user.uid}`;
+    const presenceRef = dbRef(database, presencePath);
+    set(presenceRef, {
+        online: true,
+        name: currentUserName,
+        mic: false,
+        hand: false,
+        allowed: false,
+        since: Date.now()
+    });
     onDisconnect(presenceRef).remove();
 
-    // 2) الاستماع لقائمة الطلاب
-    const studentsRef = dbRef(database, 'live_session/students');
-    if (unsubStudents) unsubStudents();
-    unsubStudents = onValue(studentsRef, (snap) => {
-        const list = snap.val() || {};
-        renderStudentList(list);
-    });
+    if (amTeacher) {
+        const studentsRef = dbRef(database, 'live_session/students');
+        if (unsubStudents) unsubStudents();
+        unsubStudents = onValue(studentsRef, (snap) => {
+            const list = snap.val() || {};
+            renderStudentList(list);
+        });
+        setTimeout(() => broadcastBoardState(true), 600);
+    }
 
-    // 3) بث الحالة الحالية عند البدء
-    setTimeout(() => broadcastBoardState(true), 800);
-}
+    if (!amTeacher) {
+        if (unsubBoard) unsubBoard();
+        unsubBoard = onValue(dbRef(database, 'live_session/board'), (snap) => {
+            const data = snap.val();
+            if (!data || !data.pages) return;
+            try {
+                pages = data.pages;
+                if (typeof data.currentPage === 'number' && data.currentPage < pages.length) {
+                    currentPage = data.currentPage;
+                }
+                pages.forEach(p => (p.images || []).forEach(im => {
+                    if (!imageCache[im.src]) {
+                        const img = new Image();
+                        img.src = im.src;
+                        img.onload = () => rdr();
+                        imageCache[im.src] = img;
+                    }
+                }));
+                boardClr = getPage().bg || '#0a101d';
+                if (board) board.style.background = boardClr;
+                rdr();
+                updatePageNumDisplay();
+            } catch (e) { console.warn('board sync error', e); }
+        });
 
-function broadcastBoardState(force) {
-    if (!database) return;
-    const user = auth.currentUser;
-    if (!user) return;
+        onValue(dbRef(database, `live_session/students/${user.uid}/allowed`), (snap) => {
+            isSpeakingAllowed = snap.val() === true;
+            const btn = $('studentMicBtn');
+            if (btn) {
+                if (isSpeakingAllowed) {
+                    btn.classList.remove('waiting');
+                    st('✅ سمح لك المعلم بالكلام', 4000);
+                } else {
+                    btn.classList.remove('active');
+                    if (micStream) {
+                        micStream.getTracks().forEach(t => t.stop());
+                        micStream = null;
+                        micActive = false;
+                    }
+                }
+            }
+        });
+    }
 
-    // نبث كل الصفحات (بما فيها الرسومات والصور)
-    const payload = {
-        currentPage: currentPage,
-        pages: pages.map(p => ({
-            strokes: p.strokes || [],
-            images: (p.images || []).map(im => ({ src: im.src, x: im.x, y: im.y, w: im.w, h: im.h, rotation: im.rotation || 0 })),
-            bg: p.bg || '#0a101d',
-            title: p.title || ''
-        })),
-        ts: Date.now()
-    };
-
-    // حد أقصى 1 ميغا — لو تجاوز نقسم أو نتجاهل
-    try {
-        const s = JSON.stringify(payload);
-        if (s.length > 5 * 1024 * 1024) {
-            console.warn('board state too large to broadcast', s.length);
-            return;
-        }
-    } catch (e) { return; }
-
-    set(dbRef(database, 'live_session/board'), payload).catch(err => {
-        console.warn('broadcast failed', err);
-    });
+    setupStudentMic();
+    setupStudentSpeaker();
+    setupWebRTC();
 }
 
 function renderStudentList(list) {
@@ -2425,13 +2468,26 @@ function renderStudentList(list) {
         return;
     }
     ul.innerHTML = arr.map(s => `
-        <li class="student">
-            <span class="avatar">👤</span>
-            <span>${escapeHtml(s.name || 'طالب')}</span>
+        <li class="student" style="${s.hand ? 'border:1px solid #22c55e;' : ''}">
+            <span class="avatar">${s.hand ? '✋' : '👤'}</span>
+            <span style="flex:1">${escapeHtml(s.name || 'طالب')}</span>
             <span class="mic ${s.mic ? '' : 'muted'}">${s.mic ? '🎤' : '🔇'}</span>
+            <button class="tb" style="height:24px;padding:0 6px;font-size:10px" onclick="allowSpeak('${s.uid}')">سماح</button>
+            <button class="tb" style="height:24px;padding:0 6px;font-size:10px" onclick="muteStudent('${s.uid}')">كتم</button>
         </li>
     `).join('');
 }
+
+window.allowSpeak = (uid) => {
+    set(dbRef(database, `live_session/students/${uid}/allowed`), true);
+    set(dbRef(database, `live_session/students/${uid}/hand`), false);
+    st('✅ تم السماح للطالب بالكلام');
+};
+
+window.muteStudent = (uid) => {
+    set(dbRef(database, `live_session/students/${uid}/allowed`), false);
+    st('🔇 تم كتم الطالب');
+};
 
 function escapeHtml(s) {
     return String(s || '').replace(/[&<>"']/g, c => ({
@@ -2439,8 +2495,184 @@ function escapeHtml(s) {
     }[c]));
 }
 
+function broadcastBoardState(force) {
+    if (!database || !amTeacher) return;
+    const payload = {
+        currentPage: currentPage,
+        pages: pages.map(p => ({
+            strokes: p.strokes || [],
+            images: (p.images || []).map(im => ({ src: im.src, x: im.x, y: im.y, w: im.w, h: im.h, rotation: im.rotation || 0 })),
+            bg: p.bg || '#0a101d',
+            title: p.title || ''
+        })),
+        ts: Date.now()
+    };
+    try {
+        const s = JSON.stringify(payload);
+        if (s.length > 5 * 1024 * 1024) {
+            console.warn('board state too large to broadcast', s.length);
+            return;
+        }
+    } catch (e) { return; }
+    set(dbRef(database, 'live_session/board'), payload).catch(err => {
+        console.warn('broadcast failed', err);
+    });
+}
+
 // ============================================================
-// ===== [20] — خطة الدرس التفاعلية =====
+// ===== [20] — أزرار الطالب: المايك والسماعة =====
+// ============================================================
+function setupStudentMic() {
+    if (amTeacher) return;
+    const btn = $('studentMicBtn');
+    if (!btn) return;
+
+    btn.onclick = async () => {
+        if (!isSpeakingAllowed) {
+            const handRef = dbRef(database, `live_session/students/${currentUserId}/hand`);
+            const cur = await get(handRef);
+            const newHand = !cur.val();
+            await set(handRef, newHand);
+            btn.classList.toggle('waiting', newHand);
+            st(newHand ? '✋ رفعت يدك، انتظر المعلم' : 'أنزلت يدك', 3000);
+            return;
+        }
+
+        if (micActive) {
+            if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+            micActive = false;
+            btn.classList.remove('active');
+            set(dbRef(database, `live_session/students/${currentUserId}/mic`), false);
+            st('🎤 المايك: متوقف', 2000);
+        } else {
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true }
+                });
+                micActive = true;
+                btn.classList.add('active');
+                set(dbRef(database, `live_session/students/${currentUserId}/mic`), true);
+                if (pc) {
+                    micStream.getTracks().forEach(track => {
+                        try { pc.addTrack(track, micStream); } catch (e) { console.warn(e); }
+                    });
+                }
+                st('🎤 المايك: يعمل — يمكنك التحدث الآن', 3000);
+            } catch (e) {
+                st('❌ فشل المايك: ' + e.message, 4000);
+            }
+        }
+    };
+}
+
+function setupStudentSpeaker() {
+    if (amTeacher) return;
+    const btn = $('studentSpeakerBtn');
+    if (!btn) return;
+
+    btn.onclick = () => {
+        if (speakerActive) {
+            speakerActive = false;
+            btn.classList.remove('active');
+            if (remoteAudioEl) remoteAudioEl.muted = true;
+            st('🔈 السماعة: متوقفة', 2000);
+        } else {
+            speakerActive = true;
+            btn.classList.add('active');
+            if (remoteAudioEl) {
+                remoteAudioEl.muted = false;
+                remoteAudioEl.play().catch(e => console.warn('play:', e));
+            }
+            st('🔊 السماعة: تعمل — ستسمع المعلم', 3000);
+        }
+    };
+}
+
+// ============================================================
+// ===== WebRTC: اتصال الصوت بين المدرس والطالب =====
+// ============================================================
+function setupWebRTC() {
+    const configuration = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    };
+    pc = new RTCPeerConnection(configuration);
+
+    if (!amTeacher) {
+        if (!remoteAudioEl) {
+            remoteAudioEl = new Audio();
+            remoteAudioEl.autoplay = true;
+            remoteAudioEl.muted = !speakerActive;
+        }
+    }
+
+    pc.ontrack = (event) => {
+        if (remoteAudioEl) {
+            remoteAudioEl.srcObject = event.streams[0];
+            remoteAudioEl.play().catch(e => console.warn('autoplay:', e));
+        }
+    };
+
+    if (amTeacher) {
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                set(dbRef(database, 'live_session/webrtc/teacher-candidate'), event.candidate.toJSON());
+            }
+        };
+        pc.createOffer()
+            .then(offer => pc.setLocalDescription(offer))
+            .then(() => {
+                set(dbRef(database, 'live_session/webrtc/teacher-offer'), {
+                    type: pc.localDescription.type,
+                    sdp: pc.localDescription.sdp
+                });
+            })
+            .catch(e => console.warn('offer:', e));
+
+        onValue(dbRef(database, 'live_session/webrtc/student-answer'), (snap) => {
+            const answer = snap.val();
+            if (answer && pc.signalingState === 'have-local-offer') {
+                pc.setRemoteDescription(new RTCSessionDescription(answer)).catch(e => console.warn(e));
+            }
+        });
+
+        onValue(dbRef(database, 'live_session/webrtc/student-candidate'), (snap) => {
+            const cand = snap.val();
+            if (cand) pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.warn(e));
+        });
+    } else {
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                set(dbRef(database, 'live_session/webrtc/student-candidate'), event.candidate.toJSON());
+            }
+        };
+
+        onValue(dbRef(database, 'live_session/webrtc/teacher-offer'), async (snap) => {
+            const offer = snap.val();
+            if (!offer) return;
+            if (pc.signalingState !== 'stable') return;
+            try {
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                set(dbRef(database, 'live_session/webrtc/student-answer'), {
+                    type: answer.type,
+                    sdp: answer.sdp
+                });
+            } catch (e) { console.warn('answer:', e); }
+        });
+
+        onValue(dbRef(database, 'live_session/webrtc/teacher-candidate'), (snap) => {
+            const cand = snap.val();
+            if (cand) pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.warn(e));
+        });
+    }
+}
+
+// ============================================================
+// ===== [21] — خطة الدرس التفاعلية =====
 // ============================================================
 function initLessonPlanInteractive() {
     const list = document.getElementById('lessonSteps');
@@ -2453,7 +2685,7 @@ function initLessonPlanInteractive() {
             const steps = JSON.parse(saved);
             list.innerHTML = '';
             steps.forEach(s => addStepToList(s.text, s.done, s.active));
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
     }
 
     list.addEventListener('click', e => {
@@ -2516,12 +2748,12 @@ function saveLessonPlan() {
 }
 
 // ============================================================
-// ===== [22] — منطقة الملفات: PDF + صور + رسم فوقها =====
+// ===== [22] — منطقة الملفات: PDF + صور =====
 // ============================================================
-let fileKind = null;            // 'pdf' | 'img' | null
+let fileKind = null;
 let pdfDoc = null, pdfPageNum = 1, pdfTask = null, pdfRenderId = 0;
 let imgUrl = null;
-const fileStrokes = {};         // مفتاح الصفحة -> خطوط
+const fileStrokes = {};
 let fileDrawing = false, fileCur = null, fileLastErase = null;
 let fileResizeT = null;
 
@@ -2534,8 +2766,8 @@ function setFileUI(open) {
     v.classList.toggle('has-file', open);
     v.classList.toggle('pdf-mode', open && fileKind === 'pdf');
     const cb = $('closeFileBtn'); if (cb) cb.style.display = open ? 'flex' : 'none';
-    $('pdf-container').style.display = (open && fileKind === 'pdf') ? 'inline-block' : 'none';
-    $('file-image-wrap').style.display = (open && fileKind === 'img') ? 'inline-block' : 'none';
+    const pc1 = $('pdf-container'); if (pc1) pc1.style.display = (open && fileKind === 'pdf') ? 'inline-block' : 'none';
+    const fw = $('file-image-wrap'); if (fw) fw.style.display = (open && fileKind === 'img') ? 'inline-block' : 'none';
 }
 
 function closeFile() {
@@ -2605,7 +2837,7 @@ function goPdfPage(n) {
 }
 
 async function openPdf(file) {
-    if (typeof pdfjsLib === 'undefined') { st('❌ مكتبة PDF لم تُحمَّل — تأكد من الاتصال بالإنترنت', 5000); return; }
+    if (typeof pdfjsLib === 'undefined') { st('❌ مكتبة PDF لم تُحمَّل', 5000); return; }
     try {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
         st('⏳ جاري فتح PDF...', 4000);
@@ -2773,7 +3005,7 @@ function initFileViewer() {
         if (fileKind !== 'pdf' || !pdfDoc || e.ctrlKey) return;
         const atBottom = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2;
         const atTop = sc.scrollTop <= 0;
-        if (e.deltaY > 0 && atBottom && pdfPageNum < pdfDoc.numPages) { e.preventDefault(); goPdfPage(pdfPageNum + 1); }
+                if (e.deltaY > 0 && atBottom && pdfPageNum < pdfDoc.numPages) { e.preventDefault(); goPdfPage(pdfPageNum + 1); }
         else if (e.deltaY < 0 && atTop && pdfPageNum > 1) { e.preventDefault(); goPdfPage(pdfPageNum - 1); sc.scrollTop = sc.scrollHeight; }
     }, { passive: false });
 
@@ -2832,7 +3064,7 @@ function initSplitter() {
 }
 
 // ============================================================
-// ===== [21] — Init =====
+// ===== [23] — Init: التشغيل الرئيسي =====
 // ============================================================
 function init() {
     try {
@@ -3050,7 +3282,6 @@ function init() {
             pti.addEventListener('input', () => {
                 if (pages[currentPage]) pages[currentPage].title = pti.value || '';
                 dirty = true;
-                // بث عند التوقف
                 clearTimeout(pti._bcTimer);
                 pti._bcTimer = setTimeout(broadcastBoardState, 500);
             });
@@ -3062,7 +3293,7 @@ function init() {
         hideDimensions();
         setupTextEditor();
 
-        // Firebase: ننتظر اكتمال استرجاع الجلسة، ومن غير المسجّل يعود للمنصة
+        // Firebase: ننتظر اكتمال استرجاع الجلسة
         let sessionStarted = false;
         onAuthStateChanged(auth, (u) => {
             if (!u) { location.href = '../index.html'; return; }
@@ -3075,10 +3306,6 @@ function init() {
         // قبل الخروج
         window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
-                        
-
-
-
         st('✅ جاهز');
     } catch (err) {
         console.error('Init:', err);
@@ -3089,3 +3316,5 @@ function init() {
 // تشغيل
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
+       
+                        
