@@ -1241,13 +1241,6 @@ function broadcastBoardState(force) {
         })),
         ts: Date.now()
     };
-    try {
-        const s = JSON.stringify(payload);
-        if (s.length > 5 * 1024 * 1024) {
-            console.warn('Board state too large to broadcast');
-            return;
-        }
-    } catch (e) { return; }
     set(dbRef(database, 'live_session/board'), payload).catch(err => console.warn('Broadcast failed:', err));
 }
 function setupStudentSpeaker() {
