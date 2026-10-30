@@ -370,8 +370,20 @@ function initUploadForm() {
 initUploadForm();
 
 /* ---------- [5] مساحة الطالب ---------- */
+/* ---------- [5] مساحة الطالب ---------- */
 async function initStudent(data) {
   $("studentWelcome").textContent = `مرحباً بك يا ${data.name} 👋`;
+  
+  // 🆕 إضافة زر الغرفة التفاعلية للطالب
+  const welcomeDiv = $("studentWelcome");
+  const roomBtnHtml = `
+    <div style="margin-top: 15px;">
+      <button class="btn btn-primary" onclick="window.location.href='room/teacher.html?name=${encodeURIComponent(data.name)}&uid=${auth.currentUser.uid}'">🎥 دخول الغرفة التفاعلية (البث المباشر)</button>
+    </div>
+  `;
+  if (!document.getElementById('studentRoomBtn')) {
+    welcomeDiv.insertAdjacentHTML('afterend', `<div id="studentRoomBtn">${roomBtnHtml}</div>`);
+  }
 
   document.querySelectorAll("#studentFilters .filter").forEach((btn) => {
     btn.onclick = () => {
