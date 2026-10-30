@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics4U | المنصة التعليمية</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body data-view="login">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">P4U</div>
+      <div>
+        <h1>Physics4U</h1>
+        <p>MASTER PHYSICS WITH MR. FARAG</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="online-status" id="topStatus">مرحباً بك في المنصة</span>
+      <button type="button" id="topLogout" class="btn btn-ghost btn-small" hidden>تسجيل الخروج</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ============ قسم الزوار (بدون تسجيل) ============ -->
+    <section id="guestSection" class="dashboard">
+      <div class="dash-head">
+        <div>
+          <h2>📚 المنطقة المجانية</h2>
+          <p>جرب المنصة واستمتع ببعض الدروس المجانية بدون تسجيل.</p>
+        </div>
+      </div>
+      <div id="freeFilesList" class="file-grid">
+        <!-- يتم تحميل الملفات المجانية هنا عبر JS -->
+      </div>
+      <div style="text-align: center; margin-top: 26px;">
+        <button class="btn btn-primary" id="guestSignupBtn">سجل الآن لفتح كافة الدروس 🚀</button>
+      </div>
+    </section>
+
+    <!-- ============ قسم تسجيل الدخول ============ -->
+    <section class="card auth-card" id="authSection">
+      <div class="card-heading">
+        <h2>الدخول إلى المنصة</h2>
+        <p>اختر نوع الحساب ثم سجّل الدخول.</p>
+      </div>
+
+      <!-- اختيار نوع الحساب -->
+      <div class="role-picker" id="rolePicker" role="tablist" aria-label="نوع الحساب">
+        <button type="button" class="role-pill active" data-role="student" role="tab" aria-selected="true">طالب</button>
+        <button type="button" class="role-pill" data-role="teacher" role="tab" aria-selected="false">مدرس</button>
+        <button type="button" class="role-pill" data-role="admin" role="tab" aria-selected="false">أدمن</button>
+      </div>
+
+      <!-- نماذج الدخول -->
+      <div id="authForms">
+        <div class="tabs">
+          <button type="button" id="loginTab" class="tab active">تسجيل الدخول</button>
+          <button type="button" id="registerTab" class="tab">حساب جديد</button>
+        </div>
+        <form id="loginForm" action="#" method="post" autocomplete="on">
+          <label>البريد الإلكتروني</label>
+          <input id="loginEmail" type="email" name="email" autocomplete="username" placeholder="name@example.com" required>
+          <label>كلمة المرور</label>
+          <input id="loginPassword" type="password" name="password" autocomplete="current-password" placeholder="******" required>
+          <button class="btn btn-primary btn-block" type="submit">دخول</button>
+        </form>
+        <form id="registerForm" hidden action="#" method="post" autocomplete="off">
+          <label>اسم الطالب الثلاثي</label>
+          <input id="registerName" type="text" name="name" placeholder="اكتب اسمك" required>
+          <label>البريد الإلكتروني</label>
+          <input id="registerEmail" type="email" name="email" autocomplete="username" placeholder="name@example.com" required>
+          <label>كلمة المرور</label>
+          <input id="registerPassword" type="password" name="new-password" autocomplete="new-password" placeholder="******" required>
+          <button class="btn btn-primary btn-block" type="submit">إرسال طلب انضمام</button>
+        </form>
+      </div>
+
+      <p id="statusMessage" class="status-message"></p>
+    </section>
+
+    <!-- ============ لوحة المدرس ============ -->
+    <section id="teacherDashboard" class="dashboard" hidden>
+       <div class="dash-head">
+        <div>
+          <h2>لوحة التحكم</h2>
+          <p id="teacherWelcome"></p>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="statPending">0</b><span>طلبات</span></div>
+          <div class="stat"><b id="statStudents">0</b><span>طلاب</span></div>
+        </div>
+      </div>
+      <nav class="dash-tabs" id="teacherNav">
+        <button class="dash-tab active" data-panel="students">👨‍🎓 الطلاب</button>
+        <button class="dash-tab" data-panel="files">📚 إدارة الملفات</button>
+        <button class="dash-tab" data-panel="live">🎥 البث المباشر</button>
+      </nav>
+      <div class="panel" id="panel-students">
+        <div class="two-cols">
+          <div class="card"><h3>طلبات الانضمام</h3><div id="pendingList" class="list"></div></div>
+          <div class="card"><h3>الطلاب المعتمدون</h3><div id="approvedList" class="list"></div></div>
+        </div>
+      </div>
+      <div class="panel" id="panel-files" hidden>
+        <div class="card">
+          <h3>رفع ملف جديد</h3>
+          <form id="uploadForm" autocomplete="off">
+             <label for="dropZone">الملف</label>
+             <label class="drop-zone" id="dropZone">
+               <span class="drop-icon">📤</span>
+               <b id="dropText">اضغط لاختيار ملف أو اسحبه هنا</b>
+               <small>PDF أو صورة أو فيديو — حتى <span id="maxSize">10</span>MB</small>
+               <input type="file" id="uploadInput" accept=".pdf,image/*,video/*,.doc,.docx,.ppt,.pptx">
+             </label>
+             <label>عنوان الملف</label><input id="uploadTitle" type="text" required>
+             <label>المسار (مثلاً: 2nd_Bac/Sem1/Lesson1)</label><input id="uploadPath" type="text" placeholder="2nd_Bac/Sem1/Lesson1" required>
+             <label>القسم</label>
+             <select id="uploadCategory">
+               <option value="lesson">درس</option>
+               <option value="review">مراجعة</option>
+               <option value="homework">واجب</option>
+             </select>
+             <label class="check-row"><input type="checkbox" id="uploadFree"> جعل هذا الملف مجانياً (يظهر للزوار بدون تسجيل)</label>
+             <div class="progress" id="uploadProgress" hidden><div class="progress-bar" id="uploadBar"></div></div>
+             <p id="uploadMsg" class="status-message"></p>
+             <button class="btn btn-primary btn-block" id="uploadBtn" type="submit">رفع للمنصة</button>
+          </form>
+          <div id="teacherFilesList" class="list" style="margin-top:20px;"></div>
+        </div>
+      </div>
+      <div class="panel" id="panel-live" hidden>
+        <div class="card empty-card">
+          <h3>الغرفة التفاعلية</h3>
+          <button class="btn btn-primary" onclick="location.href='room/teacher.html'">فتح غرفة الشرح الآن</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ لوحة الطالب ============ -->
+    <section id="studentDashboard" class="dashboard" hidden>
+      <div class="dash-head">
+        <h2>مساحة الطالب</h2>
+        <p id="studentWelcome"></p>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="studentSearch" type="search" placeholder="🔍 ابحث عن درس أو ملف...">
+          <div class="filters" id="studentFilters">
+            <button class="filter active" data-cat="all">الكل</button>
+            <button class="filter" data-cat="lesson">دروس</button>
+            <button class="filter" data-cat="review">مراجعات</button>
+            <button class="filter" data-cat="homework">واجبات</button>
+          </div>
+        </div>
+        <div id="studentFilesList" class="file-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="previewModal" class="modal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <strong id="previewTitle">معاينة</strong>
+        <div class="modal-actions">
+          <a id="previewOpen" class="btn btn-ghost btn-small" target="_blank" rel="noopener" hidden>فتح في تبويب ↗</a>
+          <button id="previewClose" class="btn btn-ghost btn-small" type="button">إغلاق ✕</button>
+        </div>
+      </div>
+      <div id="previewContent" class="modal-body"></div>
+    </div>
+  </div>
+
+  <footer><p>Physics4U © 2026 | Master Physics with Mr. Farag</p></footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

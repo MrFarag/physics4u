@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Physics4U | غرفة السبورة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link rel="stylesheet" href="room.css">
+</head>
+<body>
+
+<div id="screenshot-flash"></div>
+
+<div id="app">
+
+  <!-- ═══ الشريط الأيمن الثابت بطول الصفحة: الطلبة ═══ -->
+  <aside id="students-bar">
+                <div class="sidebar-header">👨‍🎓 الطلبة (<span id="studentCount">0</span>)</div>
+                <ul id="studentList" class="student-list">
+                    <li class="empty">لا يوجد طلاب متصلون</li>
+                </ul>
+            </aside>
+
+  <!-- ═══ الوسط ═══ -->
+  <div id="center">
+
+    <header class="top-bar">
+        <div class="brand"><b>P4U</b> <span>غرفة السبورة</span></div>
+        <input type="text" id="lessonTitleInput" class="top-title-input" placeholder="عنوان الدرس..." spellcheck="false">
+        <div class="top-controls">
+            <span id="status" class="status-text"></span>
+            <span class="live-badge">مباشر</span>
+            <button class="btn-meet" id="meetBtn">🎥 Meet</button>
+            <button class="btn-end" id="backBtn">رجوع</button>
+        </div>
+    </header>
+
+    <div id="main-split-container">
+
+        <!-- النصف الأيمن: السبورة -->
+        <div id="right-half">
+            <div class="pane-header">
+                <span class="pane-tag">📝 السبورة</span>
+                <input type="text" id="pageTitleInput" class="pane-title-input" placeholder="عنوان السبورة..." spellcheck="false">
+            </div>
+            <div class="pane-body">
+                <div id="right-bar">
+                <button class="tbtn" id="lb-text" title="Text"><svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg></button>
+                <button class="tbtn" id="lb-select" title="Select"><svg viewBox="0 0 24 24"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path></svg></button>
+                <button class="tbtn tog-on" id="lb-handles" title="نقاط التحكم"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" stroke-dasharray="3 2"></rect><circle cx="6" cy="6" r="2" fill="currentColor"></circle><circle cx="18" cy="18" r="2" fill="currentColor"></circle></svg></button>
+                <button class="tbtn" id="lb-eraser" title="Eraser"><svg viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><path d="M22 21H7"></path><path d="m5 11 9 9"></path></svg></button>
+                <button class="tbtn" id="lb-eraser-fine" title="ممحاة صغيرة"><svg viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><circle cx="19" cy="5" r="1.6" fill="currentColor"></circle></svg></button>
+                <div class="tb-sep"></div>
+                <button class="tbtn" id="lb-undo" title="تراجع"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg></button>
+                <button class="tbtn" id="lb-redo" title="إعادة"><svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg></button>
+                <button class="tbtn" id="lb-copy" title="نسخ"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                <button class="tbtn" id="lb-paste" title="لصق"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg></button>
+                <div class="tb-sep"></div>
+                <button class="tbtn" id="lb-shapes-menu" title="Shapes"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="11" height="8" rx="1"></rect><circle cx="17.5" cy="8" r="4.5"></circle><rect x="5" y="14" width="8" height="8" rx="1"></rect></svg></button>
+                <button class="tbtn" id="lb-physics-menu" title="Physics"><svg viewBox="0 0 24 24"><path d="M2 8 L5 8 L7 4 L10 12 L13 4 L16 12 L18 8 L22 8"></path><circle cx="12" cy="18" r="4"></circle><line x1="9.2" y1="15.2" x2="14.8" y2="20.8"></line><line x1="14.8" y1="15.2" x2="9.2" y2="20.8"></line></svg></button>
+                <div class="tb-sep"></div>
+                <button class="tbtn" id="lb-fill" title="Fill"><svg viewBox="0 0 24 24"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"></path><path d="m5 2 5 5"></path><path d="M2 13h15"></path><path d="M22 20a2 2 0 1 1-4 0c0-1.6 2-4 2-4s2 2.4 2 4Z"></path></svg><span class="fill-color-dot" id="fillDot" style="background: transparent;"></span></button>
+                <button class="tbtn on" id="lb-grid" title="Grid"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg></button>
+                <button class="tbtn" id="lb-fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></button>
+                <div class="tb-sep"></div>
+                <button class="tbtn" id="lb-record" title="تسجيل"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3.5" fill="currentColor"></circle></svg></button>
+                <button class="tbtn" id="lb-rec-mode" title="وضع التسجيل"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></button>
+                <button class="tbtn save-red" id="lb-save-rec" title="حفظ فيديو"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="14" height="14" rx="2"></rect><path d="m16 10 6-3v10l-6-3"></path></svg></button>
+                <button class="tbtn" id="lb-mic" title="Mic"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg><div class="mic-level"><div class="mic-level-bar" id="micLevelBar"></div></div></button>
+                <button class="tbtn" id="lb-speaker" title="Speaker"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg></button>
+                <div class="tb-sep"></div>
+                <button class="tbtn save-red" id="lb-save-file" title="حفظ"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
+                <button class="tbtn" id="lb-clear" title="Clear"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+            </div>
+                <div id="workspace">
+                <div id="board-wrapper">
+                    <div class="a4-page">
+                        <div class="a4-body">
+                            <div id="board">
+                                <div id="grid"></div>
+                                <canvas id="cvs" width="794" height="1123"></canvas>
+                                <div id="text-layer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="splitter" title="اسحب لتغيير العرض"></div>
+
+        <!-- النصف الأيسر: منطقة رفع الملفات -->
+        <div id="left-half">
+            <div class="pane-header">
+                <span class="pane-tag">📁 الملفات</span>
+                <input type="text" id="fileTitleInput" class="pane-title-input" placeholder="عنوان الملف..." spellcheck="false">
+            </div>
+            <div class="pane-body">
+                <div id="file-viewer">
+                <div id="file-grid-overlay"></div>
+                <div id="file-body">
+                    <div id="pv-bar">
+                        <button class="pv-btn" id="pvUp" title="أعلى">▲</button>
+                        <div id="pvTrack"><div id="pvThumb"></div><div id="pvTip"></div></div>
+                        <button class="pv-btn" id="pvDown" title="أسفل">▼</button>
+                    </div>
+                    <div id="file-scroll">
+                        <div id="pdf-container" style="display:none">
+                            <canvas id="pdf-canvas"></canvas>
+                            <canvas id="file-draw-canvas"></canvas>
+                        </div>
+                        <div id="file-image-wrap" style="display:none">
+                            <img id="file-image-el" alt="">
+                            <canvas id="file-image-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="file-empty-state" id="file-empty">
+                    <div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                    <div class="title">منطقة الملفات</div>
+                    <div style="color:#475569;font-size:11px">PDF - صور - JSON</div>
+                </div>
+            </div>
+                <div id="left-bar">
+                <button class="lbtn p" id="btn-open" title="فتح ملف"><svg viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path></svg></button>
+                <button class="lbtn p" id="btn-upload-img" title="رفع صورة"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg></button>
+                <button class="lbtn p" id="nwf" title="جديد"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg></button>
+                <button class="lbtn d" id="closeFileBtn" style="display:none" title="اغلاق"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                <div class="lb-sep"></div>
+                <button class="lbtn" id="bgClrRight" title="خلفية"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg></button>
+                <div class="lb-sep"></div>
+                <button class="lbtn" id="copyAreaBtn" title="نسخ مساحة"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z"></path><path d="M9 9h6v6H9z" stroke-dasharray="2 2"></path></svg></button>
+                <button class="lbtn" id="pasteBtn" title="لصق"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg></button>
+                <button class="lbtn" id="dupShape" title="نسخ"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                <button class="lbtn" id="delShape" title="حذف"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                <button class="lbtn" id="lb-undoL" title="تراجع"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg></button>
+                <button class="lbtn" id="lb-redoL" title="إعادة"><svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg></button>
+                <button class="lbtn" id="screenshotBtnBar" title="تصوير"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg></button>
+            </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- ═══ الشريط السفلي: نصف للسبورة ونصف للملفات ═══ -->
+    <div id="bottom">
+      <div id="bottom-right">
+    <button class="tb on" id="bpen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>قلم</button>
+    <div class="palette-container">
+        <button class="palette-big" id="paletteBtn" title="لوحة الألوان"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" fill="#1f2937" stroke="#e2e8f0" stroke-width="1.4" stroke-linejoin="round"></path><circle cx="7.3" cy="11.2" r="1.7" fill="#ef4444"></circle><circle cx="9.6" cy="6.9" r="1.7" fill="#fbbf24"></circle><circle cx="14.2" cy="6.1" r="1.7" fill="#22c55e"></circle><circle cx="17.4" cy="9.9" r="1.7" fill="#3b82f6"></circle></svg></button>
+        <button class="quick-color-btn active" data-color="#15803d" style="background:#15803d"></button>
+        <button class="quick-color-btn" data-color="#ef4444" style="background:#ef4444"></button>
+        <button class="quick-color-btn" data-color="#22c55e" style="background:#22c55e"></button>
+        <button class="quick-color-btn" data-color="#3b82f6" style="background:#3b82f6"></button>
+        <button class="quick-color-btn" data-color="#fbbf24" style="background:#fbbf24"></button>
+        <button class="quick-color-btn" data-color="#ffffff" id="customColorBall" style="background:#ffffff"></button>
+    </div>
+    <button class="fh-ball-btn" id="fhColorBall" title="فسفوري"></button>
+    <div class="a4-nav-bar" id="a4NavBar">
+        <span class="pdf-tag">Pg</span>
+        <button id="a4PrevBtn" onclick="window.goPrevPage()">▶</button>
+        <span class="total" id="a4PageTotal">1</span><span class="slash">/</span>
+        <input type="text" id="a4PageInput" min="1" value="1" onchange="window.jumpA4Page()">
+        <button id="a4NextBtn" onclick="window.goNextPage()">◀</button>
+        <button id="a4InsertBtn" onclick="window.goInsertPage()">↳</button>
+        <button id="a4DeleteBtn" onclick="window.goDeletePage()">🗑</button>
+    </div>
+    <div class="sp"></div>
+  </div>
+      <div id="bottom-left">
+    <div class="palette-container">
+        <button class="quick-color-btn active" data-color="#ff803d" style="background:#ff803d"></button>
+        <button class="quick-color-btn" data-color="#ef4444" style="background:#ef4444"></button>
+        <button class="quick-color-btn" data-color="#22c55e" style="background:#22c55e"></button>
+        <button class="quick-color-btn" data-color="#3b82f6" style="background:#3b82f6"></button>
+        <button class="quick-color-btn" data-color="#fbbf24" style="background:#fbbf24"></button>
+        <button class="quick-color-btn" data-color="#ffffff" style="background:#ffffff"></button>
+        <button class="palette-big" id="paletteBtnL" title="لوحة ألوان الملف"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" fill="#1f2937" stroke="#e2e8f0" stroke-width="1.4" stroke-linejoin="round"></path><circle cx="7.3" cy="11.2" r="1.7" fill="#ef4444"></circle><circle cx="9.6" cy="6.9" r="1.7" fill="#fbbf24"></circle><circle cx="14.2" cy="6.1" r="1.7" fill="#22c55e"></circle><circle cx="17.4" cy="9.9" r="1.7" fill="#3b82f6"></circle></svg></button>
+    </div>
+    <button class="fh-ball-btn" id="bpenL" title="قلم"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;pointer-events:none;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button>
+    <button class="fh-ball-btn" id="fhColorBallL" title="قلم فسفوري"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ الشريط الأيسر الثابت بطول الصفحة: خطة الدرس ═══ -->
+  <div id="plan-bar">
+                <div class="sidebar-header">📋 خطة الدرس</div>
+                <ul id="lessonSteps" class="lesson-steps">
+                    <li class="step"><input type="checkbox" class="step-check"><span contenteditable="true">مراجعة سريعة</span></li>
+                    <li class="step active"><input type="checkbox" class="step-check"><span contenteditable="true">شرح المفهوم</span></li>
+                    <li class="step"><input type="checkbox" class="step-check"><span contenteditable="true">حل أمثلة</span></li>
+                    <li class="step"><input type="checkbox" class="step-check"><span contenteditable="true">أسئلة ختامية</span></li>
+                </ul>
+            </div>
+
+</div>
+
+<!-- النوافذ المنبثقة -->
+<div class="dropdown-menu flyout" id="shapes-flyout">
+  <button class="tb quick-shape" data-shp="arrow">↗ سهم</button>
+  <button class="tb quick-shape" data-shp="line">╱ خط</button>
+  <button class="tb quick-shape" data-shp="cr">○ دائرة</button>
+  <button class="tb quick-shape" data-shp="rc">▭ مستطيل</button>
+  <button class="tb quick-shape" data-shp="sq">□ مربع</button>
+  <button class="tb quick-shape" data-shp="el">⬭ بيضاوي</button>
+</div>
+<div class="dropdown-menu flyout" id="physics-flyout">
+  <button class="tb quick-shape" data-shp="resistor">≋ مقاومة</button>
+  <button class="tb quick-shape" data-shp="battery">⊣⊢ بطارية</button>
+  <button class="tb quick-shape" data-shp="lamp">⊗ مصباح</button>
+  <button class="tb quick-shape" data-shp="capacitor">⊨ مكثف</button>
+  <button class="tb quick-shape" data-shp="inductor">∿ ملف</button>
+</div>
+<div class="dropdown-menu" id="bg-menu">
+  <div class="tb" data-bc="#0a101d">⬛ اسود</div>
+  <div class="tb" data-bc="#ffffff">⬜ ابيض</div>
+  <div class="tb" data-bc="#1a1a2e">🔵 ازرق</div>
+  <div class="tb" data-bc="#0a1a0a">🟢 اخضر</div>
+  <div class="tb" data-bc="#1a0a0a">🔴 احمر</div>
+</div>
+<div id="color-picker-popup">
+  <div class="cp-title">إعدادات القلم</div>
+  <div class="cp-grid" id="cp-grid"></div>
+  <div class="cp-custom"><label>لون:</label><input type="color" id="custom-color-input" value="#ffffff"></div>
+  <div class="fh-thickness-row"><label>السمك:</label><input type="range" id="cp-thickness-slider" min="1" max="20" value="4"><span class="fh-thickness-val" id="cp-thickness-val">4</span></div>
+  <div class="cp-line-styles">
+    <button class="tb ls-btn active" data-style="solid">صلب</button>
+    <button class="tb ls-btn" data-style="dashed">متقطع</button>
+    <button class="tb ls-btn" data-style="dotted">منقط</button>
+  </div>
+</div>
+<div id="fh-popup">
+  <div class="cp-title">القلم الفسفوري</div>
+  <div class="cp-grid" id="fh-color-grid"></div>
+  <div class="fh-thickness-row"><label>السمك:</label><input type="range" id="fh-thickness-slider" min="4" max="40" value="18"><span class="fh-thickness-val" id="fh-thickness-val">18</span></div>
+  <div class="fh-thickness-row"><label>الشفافية:</label><input type="range" id="fh-opacity-slider" min="10" max="95" step="5" value="90"><span class="fh-thickness-val" id="fh-opacity-val">90%</span></div>
+</div>
+<div id="shape-dimensions" class="shape-dimensions idle" style="display:none">
+  <div class="dim-cell off"><label>L</label><input type="number" id="dim-width" disabled></div>
+  <div class="dim-cell off"><label>W</label><input type="number" id="dim-height" disabled></div>
+  <div class="dim-cell off"><label>Theta</label><input type="number" id="dim-theta" step="any" disabled></div>
+  <div class="dim-cell off"><label>r</label><input type="number" id="dim-r" step="any" disabled></div>
+  <div class="dim-cell off"><label>x</label><input type="number" id="dim-x" step="any" disabled></div>
+  <div class="dim-cell off"><label>y</label><input type="number" id="dim-y" step="any" disabled></div>
+  <div class="dim-cell off"><label>HR</label><input type="number" id="dim-tilt-h" disabled></div>
+  <div class="dim-cell off"><label>VR</label><input type="number" id="dim-tilt-v" disabled></div>
+  <div class="dim-cell off"><label>Tr%</label><input type="number" id="dim-alpha" disabled></div>
+</div>
+<div class="edit-info" id="editInfo" style="display:none"></div>
+<input type="file" id="f-unified" class="hd" accept=".pdf,image/*,.json,.sbm">
+<input type="file" id="f-image-only" class="hd" accept="image/*">
+<textarea id="text-editor" spellcheck="false" style="display:none" placeholder="اكتب هنا..."></textarea>
+
+<script>
+  document.getElementById('backBtn').onclick = () => {
+    if (confirm('إنهاء الحصة والرجوع؟')) location.href = '../index.html';
+  };
+  const bindSaved = (id, key, def) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = localStorage.getItem(key) || def;
+    el.addEventListener('input', () => localStorage.setItem(key, el.value));
+  };
+  bindSaved('lessonTitleInput', 'lesson_title', 'فيزياء - الدرس الأول');
+  bindSaved('fileTitleInput', 'file_area_title', 'منطقة الملفات');
+  document.getElementById('meetBtn').onclick = () => {
+    const u = prompt('الصق رابط Meet:', localStorage.getItem('meet_url') || 'https://meet.google.com/new');
+    if (u) { localStorage.setItem('meet_url', u); window.open(u, '_blank'); }
+  };
+</script>
+<script type="module" src="room.js"></script>
+</body>
+</html>

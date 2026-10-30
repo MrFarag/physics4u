@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>فحص التخزين</title>
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;background:#0f1621;color:#e8edf3;max-width:720px;margin:30px auto;padding:0 16px;line-height:1.9}
+  h2{margin-bottom:6px}
+  .row{background:#182231;border:1px solid #2f4058;border-radius:10px;padding:10px 14px;margin:10px 0}
+  .ok{color:#7fe0a6}.bad{color:#ff8a8a}.wait{color:#9fb0c5}
+  code{direction:ltr;display:inline-block;background:#0f1824;padding:1px 6px;border-radius:5px;word-break:break-all}
+  button{background:#6b0f19;color:#fff;border:1px solid #94303b;border-radius:8px;padding:9px 20px;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<h2>فحص اتصال Firebase Storage</h2>
+<p>افتح هذه الصفحة من نفس العنوان الذي تفتح منه المنصة (مثلاً <code>http://localhost:8000/storage-test.html</code>) ثم اضغط الزر.</p>
+<button id="go">ابدأ الفحص</button>
+<div id="out"></div>
+
+<script type="module">
+import { auth, storage } from "./firebase.js";
+import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+
+const out = document.getElementById("out");
+const add = (cls, html) => { const d = document.createElement("div"); d.className = "row " + cls; d.innerHTML = html; out.appendChild(d); return d; };
+const bucket = storage.app.options.storageBucket;
+
+document.getElementById("go").onclick = async () => {
+  out.innerHTML = "";
+  add("", `الحاوية في <code>firebase.js</code>: <code>${bucket}</code>`);
+  add("", auth.currentUser ? `مسجّل الدخول كـ <code>${auth.currentUser.email}</code>` : `<span class="bad">غير مسجّل الدخول</span> — سجّل دخول المدرس في المنصة أولاً ثم ارجع هنا (تبويب جديد من نفس المتصفح).`);
+
+  // 1) هل الحاوية موجودة وتستجيب؟
+  const r1 = add("wait", "1) أسأل خوادم Google عن الحاوية...");
+  try {
+    const res = await fetch(`https://firebasestorage.googleapis.com/v0/b/${bucket}/o?maxResults=1`);
+    let body = ""; try { body = JSON.stringify(await res.json()); } catch (_) {}
+    if (res.status === 404) {
+      r1.className = "row bad";
+      r1.innerHTML = `1) ❌ الحاوية <code>${bucket}</code> <b>غير موجودة</b> (404).<br>الحل: افتح Firebase Console ← Storage ← Get started، ثم انسخ اسم الحاوية الظاهر (بعد <code>gs://</code>) وضعه في <code>storageBucket</code> داخل <code>firebase.js</code>.`;
+    } else if (res.status === 402 || /billing|blaze/i.test(body)) {
+      r1.className = "row bad";
+      r1.innerHTML = `1) ❌ المشروع يحتاج تفعيل الفوترة (خطة Blaze) لاستخدام Storage.<br><code>${body}</code>`;
+    } else {
+      r1.className = "row ok";
+      r1.innerHTML = `1) ✅ الحاوية موجودة وتستجيب (الرد ${res.status}). ${res.status === 401 || res.status === 403 ? "هذا طبيعي: القواعد تمنع القراءة بلا صلاحية." : ""}`;
+    }
+  } catch (e) {
+    r1.className = "row bad";
+    r1.innerHTML = `1) ❌ لا يوجد رد من الحاوية (<code>${e.message}</code>). هذا يعني غالباً أن <b>Storage غير مفعّل</b> أو الحاوية غير موجودة أو المشروع يحتاج Blaze، أو أن هناك حاجباً للشبكة/إضافة في المتصفح.`;
+  }
+
+  // 2) محاولة رفع ملف صغير
+  const r2 = add("wait", "2) أحاول رفع ملف تجريبي صغير (حتى 15 ثانية)...");
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("لا استجابة خلال 15 ثانية"), { code: "timeout" })), 15000));
+  try {
+    await Promise.race([uploadBytes(ref(storage, `materials/_test_${Date.now()}.txt`), new Blob(["hello"], { type: "text/plain" })), timeout]);
+    r2.className = "row ok";
+    r2.innerHTML = "2) ✅ نجح الرفع التجريبي. التخزين يعمل، والمشكلة في مكان آخر (أرسل لي هذه النتيجة).";
+  } catch (e) {
+    r2.className = "row bad";
+    const hint = {
+      "storage/unauthorized": "الحاوية تعمل لكن <b>القواعد ترفض الرفع</b>: انشر storage.rules، وسجّل الدخول بإيميل المدرس نفسه المكتوب في القواعد.",
+      "storage/unauthenticated": "لم تسجّل الدخول. سجّل دخول المدرس ثم أعد الفحص.",
+      "storage/retry-limit-exceeded": "لا اتصال بالحاوية (انظر النتيجة 1).",
+      "timeout": "لا اتصال بالحاوية (انظر النتيجة 1).",
+      "storage/bucket-not-found": "الحاوية غير موجودة: فعّل Storage أو صحّح اسمها في firebase.js.",
+    }[e.code] || "";
+    r2.innerHTML = `2) ❌ فشل الرفع: <code>${e.code || ""}</code> <code>${e.message}</code><br>${hint}`;
+  }
+};
+</script>
+</body>
+</html>
