@@ -214,4 +214,18 @@ body:not(.is-teacher) .top-bar { display: none; }
 }
 .student-controls button.active {
   background: #22c55e; border-color: #16a34a;
+   /* إخفاء الأدوات عن الطالب فقط */
+body.is-student #right-bar,
+body.is-student #left-bar,
+body.is-student #bottom,
+body.is-student .pane-header,
+body.is-student #splitter,
+body.is-student .top-bar { 
+  display: none !important; 
+}
+body.is-student #main-split-container { display: block !important; }
+body.is-student #right-half { width: 100% !important; height: 100vh !important; }
+body.is-student #center { height: 100vh !important; width: 100% !important; }
+body.is-student .a4-body { height: 100vh !important; width: 100% !important; }
+body.is-student canvas { pointer-events: none !important; } 
 }
