@@ -159,3 +159,24 @@ body { display: block; }
 #file-draw-canvas, #file-image-canvas { z-index: 3; touch-action: none; }
 #file-viewer.has-file .file-empty-state { display: none; }
 #left-half.drag-over #file-viewer { outline: 2px dashed var(--accent); outline-offset: -4px; }
+/* ==========================================
+   إصلاحات الشاشات الصغيرة (الموبايل)
+   ========================================== */
+@media (max-width: 768px) {
+  /* إخفاء الشريط الجانبي للطلاب وخطة الدرس على الموبايل */
+  #students-bar, #plan-bar { display: none !important; }
+  
+  /* إخفاء منطقة الملفات على الموبايل (ليظهر فقط السبورة) */
+  #left-half { display: none !important; }
+  #splitter { display: none !important; }
+  
+  /* جعل السبورة تأخذ عرض الشاشة بالكامل */
+  #right-half { width: 100% !important; }
+  #main-split-container { flex-direction: column; }
+  
+  /* تصغير الشريط العلوي */
+  .top-bar { height: auto; padding: 5px; flex-direction: column; gap: 5px; }
+  .brand { font-size: 12px; }
+  .top-title-input { width: 100%; font-size: 14px; }
+  .top-controls { width: 100%; justify-content: space-between; }
+}
