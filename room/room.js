@@ -1230,22 +1230,25 @@ window.allowSpeak = (uid) => { set(dbRef(database, `live_session/students/${uid}
 window.muteStudent = (uid) => { set(dbRef(database, `live_session/students/${uid}/allowed`), false); st('🔇 تم كتم الطالب'); };
 function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function broadcastBoardState(force) {
-  if (!database || !amTeacher) return;
-  const payload = { currentPage, pages: pages.map(p => ({ strokes: p.strokes || [], images: (p.images || []).map(im => ({ src: im.src, x: im.x, y: im.y, w: im.w, h: im.h, rotation: im.rotation || 0 })), bg: p.bg || '#0a101d', title: p.title || '' })), ts: Date.now() };
-  try { const s = JSON.stringify(payload); if (s.length > 5 * 1024 * 1024) return; } catch (e) { return; }
-  set(dbRef(database, 'live_session/board'), payload).catch(err => console.warn(err));
-}
-function setupStudentMic() {
-  if (amTeacher) return; const btn = $('studentMicBtn'); if (!btn) return;
-  btn.onclick = async () => {
-    if (!isSpeakingAllowed) { const handRef = dbRef(database, `live_session/students/${currentUserId}/hand`); const cur = await get(handRef), newHand = !cur.val(); await set(handRef, newHand); btn.classList.toggle('waiting', newHand); st(newHand ? '✋ رفعت يدك' : 'أنزلت يدك', 3000); return; }
-    if (micActive) { if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; } micActive = false; btn.classList.remove('active'); set(dbRef(database, `live_session/students/${currentUserId}/mic`), false); st('🎤 متوقف', 2000); }
-    else {
-      try { micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); micActive = true; btn.classList.add('active'); set(dbRef(database, `live_session/students/${currentUserId}/mic`), true);
-      if (pc) { micStream.getTracks().forEach(track => { try { pc.addTrack(track, micStream); } catch (e) {} }); } st('🎤 يعمل', 3000);
-      } catch (e) { st('❌ فشل المايك: ' + e.message, 4000); }
-    }
-  };
+    if (!database || !amTeacher) return;
+    const payload = {
+        currentPage: currentPage,
+        pages: pages.map(p => ({
+            strokes: p.strokes || [],
+            images: (p.images || []).map(im => ({ src: im.src, x: im.x, y: im.y, w: im.w, h: im.h, rotation: im.rotation || 0 })),
+            bg: p.bg || '#0a101d',
+            title: p.title || ''
+        })),
+        ts: Date.now()
+    };
+    try {
+        const s = JSON.stringify(payload);
+        if (s.length > 5 * 1024 * 1024) {
+            console.warn('Board state too large to broadcast');
+            return;
+        }
+    } catch (e) { return; }
+    set(dbRef(database, 'live_session/board'), payload).catch(err => console.warn('Broadcast failed:', err));
 }
 function setupStudentSpeaker() {
   if (amTeacher) return; const btn = $('studentSpeakerBtn'); if (!btn) return;
