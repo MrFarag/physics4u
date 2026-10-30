@@ -693,7 +693,14 @@ async function toggleMic() {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const src = audioContext.createMediaStreamSource(micStream); analyser = audioContext.createAnalyser(); analyser.fftSize = 256; src.connect(analyser);
-      micActive = true; if (btn) btn.classList.add('mic-on');
+      micActive = true; 
+      // إذا كان الاتصال مفتوحاً، نضيف صوت المايك إليه فوراً
+if (pc && micStream) {
+    micStream.getTracks().forEach(track => {
+        try { pc.addTrack(track, micStream); } catch(e) {}
+    });
+}
+      if (btn) btn.classList.add('mic-on');
       function upd() {
         if (!micActive || !analyser) return;
         const d = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(d);
@@ -1188,7 +1195,8 @@ function initFirebaseSession() {
   currentUserId = user.uid; amTeacher = (user.email === 'mrfaragphysics@gmail.com');
   const urlParams = new URLSearchParams(window.location.search); currentUserName = urlParams.get('name') || user.displayName || 'مستخدم';
   if (amTeacher) { document.body.classList.add('is-teacher'); document.body.classList.remove('is-student'); }
-  else { document.body.classList.remove('is-teacher'); document.body.classList.add('is-student'); const controls = $('studentControls'); if (controls) controls.style.display = 'flex'; if (cv) cv.style.pointerEvents = 'none'; }
+  else { document.body.classList.remove('is-teacher'); document.body.classList.add('is-student');
+        const controls = $('studentControls'); if (controls) controls.style.display = 'none'; }
   const presencePath = amTeacher ? 'live_session/teacher' : `live_session/students/${user.uid}`, presenceRef = dbRef(database, presencePath);
   set(presenceRef, { online: true, name: currentUserName, mic: false, hand: false, allowed: false, since: Date.now() }); onDisconnect(presenceRef).remove();
   if (amTeacher) {
@@ -1247,23 +1255,58 @@ function setupStudentSpeaker() {
   };
 }
 function setupWebRTC() {
-  const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] };
-  pc = new RTCPeerConnection(configuration);
-  if (!amTeacher) { if (!remoteAudioEl) { remoteAudioEl = new Audio(); remoteAudioEl.autoplay = true; remoteAudioEl.muted = !speakerActive; } }
-  pc.ontrack = (event) => { if (remoteAudioEl) { remoteAudioEl.srcObject = event.streams[0]; remoteAudioEl.play().catch(e => console.warn(e)); } };
-  if (amTeacher) {
-    pc.onicecandidate = (event) => { if (event.candidate) set(dbRef(database, 'live_session/webrtc/teacher-candidate'), event.candidate.toJSON()); };
-    pc.createOffer().then(offer => pc.setLocalDescription(offer)).then(() => { set(dbRef(database, 'live_session/webrtc/teacher-offer'), { type: pc.localDescription.type, sdp: pc.localDescription.sdp }); }).catch(e => console.warn(e));
-    onValue(dbRef(database, 'live_session/webrtc/student-answer'), (snap) => { const answer = snap.val(); if (answer && pc.signalingState === 'have-local-offer') pc.setRemoteDescription(new RTCSessionDescription(answer)).catch(e => console.warn(e)); });
-    onValue(dbRef(database, 'live_session/webrtc/student-candidate'), (snap) => { const cand = snap.val(); if (cand) pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.warn(e)); });
-  } else {
-    pc.onicecandidate = (event) => { if (event.candidate) set(dbRef(database, 'live_session/webrtc/student-candidate'), event.candidate.toJSON()); };
-    onValue(dbRef(database, 'live_session/webrtc/teacher-offer'), async (snap) => {
-      const offer = snap.val(); if (!offer || pc.signalingState !== 'stable') return;
-      try { await pc.setRemoteDescription(new RTCSessionDescription(offer)); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); set(dbRef(database, 'live_session/webrtc/student-answer'), { type: answer.type, sdp: answer.sdp }); } catch (e) { console.warn(e); }
-    });
-    onValue(dbRef(database, 'live_session/webrtc/teacher-candidate'), (snap) => { const cand = snap.val(); if (cand) pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.warn(e)); });
-  }
+    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] };
+    pc = new RTCPeerConnection(configuration);
+    
+    // الطالب: إعداد مشغل الصوت (بدون زر، يشتغل تلقائياً بمجرد وصول الصوت)
+    if (!amTeacher) {
+        if (!remoteAudioEl) {
+            remoteAudioEl = new Audio();
+            remoteAudioEl.autoplay = true;
+            remoteAudioEl.muted = false; 
+        }
+    }
+    
+    pc.ontrack = (event) => {
+        if (remoteAudioEl) {
+            remoteAudioEl.srcObject = event.streams[0];
+            // محاولة التشغيل التلقائي. المتصفح سيسمح بها لأن الطالب ضغط على الصفحة للدخول
+            remoteAudioEl.play().catch(e => {
+                console.warn('Autoplay blocked, waiting for interaction:', e);
+                // إذا منع المتصفح الصوت، ننتظر أول ضغطة من الطالب لتشغيله
+                document.addEventListener('click', function unlockAudio() {
+                    remoteAudioEl.play();
+                    document.removeEventListener('click', unlockAudio);
+                }, { once: true });
+            });
+        }
+    };
+
+    if (amTeacher) {
+        // المدرس يبث صوته
+        pc.onicecandidate = (event) => { if (event.candidate) set(dbRef(database, 'live_session/webrtc/teacher-candidate'), event.candidate.toJSON()); };
+        
+        // إذا ضغط المدرس على زر المايك، نضيف الصوت للاتصال
+        if (micStream) { micStream.getTracks().forEach(track => pc.addTrack(track, micStream)); }
+        
+        pc.createOffer().then(offer => pc.setLocalDescription(offer)).then(() => { set(dbRef(database, 'live_session/webrtc/teacher-offer'), { type: pc.localDescription.type, sdp: pc.localDescription.sdp }); }).catch(e => console.warn(e));
+        
+        onValue(dbRef(database, 'live_session/webrtc/student-answer'), (snap) => { const answer = snap.val(); if (answer && pc.signalingState === 'have-local-offer') pc.setRemoteDescription(new RTCSessionDescription(answer)).catch(e => console.warn(e)); });
+        onValue(dbRef(database, 'live_session/webrtc/student-candidate'), (snap) => { const cand = snap.val(); if (cand) pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.warn(e)); });
+    } else {
+        // الطالب يستقبل الصوت
+        pc.onicecandidate = (event) => { if (event.candidate) set(dbRef(database, 'live_session/webrtc/student-candidate'), event.candidate.toJSON()); };
+        onValue(dbRef(database, 'live_session/webrtc/teacher-offer'), async (snap) => {
+            const offer = snap.val(); if (!offer || pc.signalingState !== 'stable') return;
+            try { 
+                await pc.setRemoteDescription(new RTCSessionDescription(offer)); 
+                const answer = await pc.createAnswer(); 
+                await pc.setLocalDescription(answer); 
+                set(dbRef(database, 'live_session/webrtc/student-answer'), { type: answer.type, sdp: answer.sdp }); 
+            } catch (e) { console.warn(e); }
+        });
+        onValue(dbRef(database, 'live_session/webrtc/teacher-candidate'), (snap) => { const cand = snap.val(); if (cand) pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.warn(e)); });
+    }
 }
 
 // ============================================================
