@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Physics — Mr. Farag Physics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css?v=12">
+</head>
+<body>
+<header class="hd">
+  <div class="brand">⚛️ MASTER PHYSICS <small id="roomTag"></small></div>
+  <nav>
+    <a href="live.html" class="nav-live">🔴 بث مباشر</a><a href="#courses">الدورات</a><a href="#free">دروس مجانية</a><a href="#videos">فيديوهات</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero2" id="top">
+    <h1 class="mp">Master Physics</h1>
+    <h2 class="tn"><span id="tName"></span></h2>
+    <p class="tag">حصص مباشرة · دورات مسجّلة · دروس مجانية</p>
+    <div class="cta">
+      <a class="btn gold big" id="joinBtn" href="live.html">🔴 ادخل البث المباشر</a>
+      <a class="btn blue big" href="#courses">📚 تصفّح الدروس</a>
+    </div>
+    <div class="live-state"><span class="dot" id="liveDot"></span><b id="liveTxt">جارٍ التحقق…</b></div>
+    <p id="liveSub" class="sub">ادخل الحصة المباشرة عند بدئها.</p>
+    <div class="sched" id="sched"></div>
+  </section>
+
+  <section class="pics">
+    <a class="pic" href="#courses">
+      <svg viewBox="0 0 200 130"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d4ed8"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="200" height="130" fill="url(#g1)"/><path d="M20 65h160" stroke="#fff" stroke-opacity=".5" stroke-dasharray="4 4"/><ellipse cx="100" cy="65" rx="16" ry="48" fill="#bae6fd" fill-opacity=".7" stroke="#fff"/><path d="M40 35l60 30 60 10" stroke="#fde68a" stroke-width="2" fill="none"/><circle cx="40" cy="35" r="4" fill="#fde68a"/></svg>
+      <b>البصريات والعدسات</b><span>اكتشف الدورة ←</span></a>
+    <a class="pic" href="#free">
+      <svg viewBox="0 0 200 130"><defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#059669"/><stop offset="1" stop-color="#0891b2"/></linearGradient></defs><rect width="200" height="130" fill="url(#g2)"/><g fill="none" stroke="#fff" stroke-width="2.5"><rect x="45" y="40" width="110" height="50" rx="6"/><path d="M45 65H25M155 65h20"/></g><circle cx="100" cy="65" r="14" fill="#fde68a"/><path d="M92 65h16M100 57v16" stroke="#92400e" stroke-width="2.5"/></svg>
+      <b>دروس مجانية</b><span>ابدأ بدون اشتراك ←</span></a>
+    <a class="pic" href="#videos">
+      <svg viewBox="0 0 200 130"><defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d97706"/><stop offset="1" stop-color="#dc2626"/></linearGradient></defs><rect width="200" height="130" fill="url(#g3)"/><g fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="2.5"><ellipse cx="100" cy="65" rx="62" ry="22"/><ellipse cx="100" cy="65" rx="62" ry="22" transform="rotate(60 100 65)"/><ellipse cx="100" cy="65" rx="62" ry="22" transform="rotate(120 100 65)"/></g><circle cx="100" cy="65" r="9" fill="#fff"/></svg>
+      <b>فيديوهات مختصرة</b><span>شاهد الآن ←</span></a>
+  </section>
+
+  <section id="courses"><h2>الدورات والدروس المدفوعة <button class="btn blue small" id="codeBtn" style="margin-inline-start:auto">🔑 لدي كود اشتراك</button></h2><div class="sample-note" id="sampleNote" style="display:none">⚠ هذه عينات تجريبية — سيظهر هنا المحتوى الحقيقي قريبًا</div><div class="grid" id="courseGrid"></div></section>
+  <section id="free"><h2>دروس مجانية <em>مجانًا</em></h2><div class="grid" id="freeGrid"></div></section>
+  <section id="videos"><h2>فيديوهات مجانية</h2><div class="grid vids" id="vidGrid"></div></section>
+</main>
+
+<footer>© Mr. Farag Physics · المحتوى الحالي عينات تجريبية</footer>
+<a class="fab-live" href="live.html" id="fabLive">🔴 البث المباشر</a>
+
+<div class="modal" id="codeModal"><div class="mbox" style="max-width:380px"><button class="mx" id="cmx">✕</button><h3 style="margin-bottom:10px">كود الاشتراك</h3><input id="codeIn" placeholder="مثال: K7M2XQ9P" style="width:100%;height:42px;border-radius:10px;border:1px solid #334155;background:#0a101d;color:#fff;text-align:center;font-size:18px;letter-spacing:3px;direction:ltr;text-transform:uppercase"><div id="codeMsg" style="min-height:22px;margin:8px 0;font-size:13px"></div><button class="btn gold" id="codeGo">تفعيل</button></div></div>
+<div class="modal" id="modal"><div class="mbox"><button class="mx" id="mx">✕</button><div id="mbody"></div></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="config.js?v=13"></script>
+<script src="home-data.js?v=12"></script>
+<script src="home.js?v=12"></script>
+</body>
+</html>
