@@ -35,6 +35,7 @@
 .cb-body{flex:1;min-height:0;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;background:radial-gradient(circle at 20% 0,#0f1c33,#0a111f 60%);user-select:text;-webkit-user-select:text}
 .cb-empty{margin:auto;text-align:center;color:#64748b;font-size:13.5px;line-height:1.9;padding:20px}.cb-empty svg{width:48px;height:48px;fill:none;stroke:#334e7a;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px}
 .cb-m{max-width:85%;width:fit-content;padding:5px 10px 3px;border-radius:12px;font-size:14px;line-height:1.45;word-break:break-word;display:flex;flex-direction:column;gap:3px;position:relative}
+.cb-dl2{background:none;border:0;color:inherit;opacity:.55;cursor:pointer;font:inherit;font-size:11px;padding:0 4px}.cb-dl2:hover{opacity:1}.cb-dl2.arm{color:#ef4444;opacity:1;font-weight:700}
 .cb-ed{background:none;border:none;color:inherit;opacity:.7;cursor:pointer;font:inherit;font-size:11px;padding:0 4px}.cb-ed:hover{opacity:1;text-decoration:underline}.cb-ted{font-size:10px;opacity:.7}
 .cb-m.me{align-self:flex-start;background:#7f1d1d;color:#ffe4e4;border-top-right-radius:4px}
 .cb-m.ot{align-self:flex-end;background:#14532d;color:#dcfce7;border-top-left-radius:4px}
@@ -167,14 +168,14 @@
         '.cb-ed-n{left:30px;right:30px;top:0;height:6px;cursor:ns-resize}.cb-ed-nw,.cb-ed-ne{top:0;width:14px;height:14px;z-index:10}.cb-ed-nw{left:0;cursor:nwse-resize}.cb-ed-ne{right:0;cursor:nesw-resize}#cbx.col .cb-ed-n,#cbx.col .cb-ed-nw,#cbx.col .cb-ed-ne{display:none}' +
         '';
     function build() {
-        const st = document.createElement('style'); st.textContent = CSS + CSS2 + CSS3 + CSS4 + SB_CSS; document.head.appendChild(st);
+        const st = document.createElement('style'); st.textContent = CSS + CSS2 + CSS3 + CSS4 + SB_CSS + '.cb-sl{order:-1;background:linear-gradient(180deg,#2e1065,#1e0a45)!important;border-right:0!important;border-left:1px solid #5c1a1a!important}.cb-sl .sl-s input{background:rgba(0,0,0,.3)!important}';   /* [CB-DEL3] قائمة الطلاب يمينًا بخلفية بنفسجية داكنة */ document.head.appendChild(st);
         win = document.createElement('div'); win.id = 'cbx';
         win.innerHTML =
             '<div class="cb-head" id="cbHead"><div class="cb-av">' + IC.chat + '</div><div class="cb-ti"><b id="cbTitle"></b><small id="cbSub"></small></div>' +
-            '<div class="cb-btns">' + (role === 't' ? '<button class="cb-hb sd z" id="cbFpT" title="إظهار/إخفاء شريط ملفات الطالب">📎 <b>0</b></button>' : '') + '<button class="cb-hb" id="cbClear" style="display:none" title="مسح المحادثة">مسح</button>' +
+            '<div class="cb-btns">' + '<button class="cb-hb" id="cbClear" style="display:none" title="مسح المحادثة">مسح</button>' +
             '<button class="cb-hb" id="cbCol" title="تصغير/تكبير">' + IC.down + '</button>' +
             '<button class="cb-hb danger" id="cbClose" title="إغلاق">' + IC.close + '</button></div></div>' +
-            '<div class="cb-split">' + (role === 't' ? '<div class="cb-fp" id="cbFp"><div class="fp-tabs"><button data-sd="ex">اختبارات <b>0</b></button><button data-sd="hw">واجبات <b>0</b></button><button data-sd="fl">أسئلة <b>0</b></button><button class="fp-x" id="fpX" title="إغلاق هذا الجزء (يعود من زر 📎 في الأعلى)">✕</button></div><div class="fp-list" id="fpList"></div><div class="fp-act"><button data-a="view">' + IC.open + ' عرض</button><button data-a="fix">' + IC.fix + ' تصحيح</button><button data-a="board">⇱ للسبورة</button><button data-a="dl">' + IC.dl + ' تحميل</button><button data-a="saveall" class="w2">💾 حفظ الكل</button></div></div>' : '') + '<div class="cb-mn">' +
+            '<div class="cb-split">' + '<div class="cb-mn">' +
             '<div class="cb-err" id="cbErr"></div><div class="cb-chips" id="cbChips" style="display:none"></div>' +
             '<div class="cb-body" id="cbBody"></div>' +
             '<div class="cb-comp" id="cbComp">' +
@@ -184,7 +185,7 @@
             '<button class="cb-ib" id="cbMic" title="رسالة صوتية">' + IC.mic + '</button>' +
             '<button class="cb-ib send" id="cbSend" title="إرسال">' + IC.send + '</button>' +
             '<input type="file" id="cbFile" style="display:none" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip">' +
-            '</div>' + (role === 't' ? '<div class="cb-vw" id="cbVw"><div class="vw-h"><button id="vwBack">→ رجوع للمحادثة</button><b id="vwT"></b></div><div class="vw-c" id="vwC"></div></div><div id="cbGh"></div>' : '') + '</div>' + (role === 't' ? '<div class="cb-sl" id="cbSl"><div class="sl-s"><input id="slN" placeholder="بحث باسم الطالب" autocomplete="off"><input id="slC" placeholder="كود" autocomplete="off"></div><div class="sl-q" id="slQ"></div><div class="sl-l" id="slL"></div><div class="sl-f"><input id="sfN" placeholder="اسم الطالب" autocomplete="off"><div><input id="sfC" placeholder="الكود" autocomplete="off"><input id="sfP" placeholder="رقم الواتس" autocomplete="off" inputmode="tel"></div></div><button class="sl-add" id="slAdd" title="يحفظ الاسم والكود والرقم وتفعيل الدخول">💾 حفظ</button></div>' : '') + '</div><div class="cb-grip" id="cbGrip" title="تغيير الحجم"></div><div class="cb-grip cb-gripL" id="cbGripL" title="تغيير الحجم"></div><i class="cb-ed cb-ed-e" data-d="e"></i><i class="cb-ed cb-ed-w" data-d="w"></i><i class="cb-ed cb-ed-s" data-d="s"></i><i class="cb-ed cb-ed-n" data-d="n"></i><i class="cb-ed cb-ed-nw" data-d="nw"></i><i class="cb-ed cb-ed-ne" data-d="ne"></i>';
+            '</div>' + (role === 't' ? '<div class="cb-vw" id="cbVw"><div class="vw-h"><button id="vwBack">→ رجوع للمحادثة</button><b id="vwT"></b></div><div class="vw-c" id="vwC"></div></div><div id="cbGh"></div>' : '') + '</div>' + (role === 't' ? '<div class="cb-sl" id="cbSl"><div class="sl-s"><input id="slN" placeholder="بحث باسم الطالب" autocomplete="off"><input id="slC" placeholder="كود" autocomplete="off"></div><div class="sl-l" id="slL"></div><div class="sl-f"><input id="sfN" placeholder="اسم الطالب" autocomplete="off"><div><input id="sfC" placeholder="الكود" autocomplete="off"><input id="sfP" placeholder="رقم الواتس" autocomplete="off" inputmode="tel"></div></div><button class="sl-add" id="slAdd" title="يحفظ الاسم والكود والرقم وتفعيل الدخول">💾 حفظ</button></div>' : '') + '</div><div class="cb-grip" id="cbGrip" title="تغيير الحجم"></div><div class="cb-grip cb-gripL" id="cbGripL" title="تغيير الحجم"></div><i class="cb-ed cb-ed-e" data-d="e"></i><i class="cb-ed cb-ed-w" data-d="w"></i><i class="cb-ed cb-ed-s" data-d="s"></i><i class="cb-ed cb-ed-n" data-d="n"></i><i class="cb-ed cb-ed-nw" data-d="nw"></i><i class="cb-ed cb-ed-ne" data-d="ne"></i>';
         document.body.appendChild(win);
         const lb = document.createElement('div'); lb.id = 'cbLight';
         lb.innerHTML = '<div class="lw"><img id="cbLimg" alt=""></div><div class="lb"><a class="cb-a" id="cbLdl">' + IC.dl + ' تحميل</a><button class="cb-a" id="cbLcl">إغلاق</button></div>';
@@ -255,6 +256,9 @@
         ui.body.addEventListener('click', e => {
             const im = e.target.closest('img.cb-img'); if (im) return lightbox(im.src, im.dataset.name);
             const fx = e.target.closest('[data-fix]'); if (fx) { const m = find(fx.dataset.fix); if (m && m.file) fixFile(m.file); return; }
+            const dl = e.target.closest('[data-del]');   /* [CB-DEL4] حذف رسالة واحدة (بتأكيد) */
+            if (dl) { if (!dl.dataset.arm) { dl.dataset.arm = 1; dl.classList.add('arm'); dl.textContent = 'تأكيد؟'; setTimeout(() => { if (dl.isConnected) { delete dl.dataset.arm; dl.classList.remove('arm'); dl.textContent = '🗑 حذف'; } }, 3000); return; }
+                const m = find(dl.dataset.del); if (m) { try { cfg.ref(pathOf(m.conv) + '/' + m.k).remove(); } catch (er) { } } return; }
             const ed = e.target.closest('[data-ed]'); if (ed) { const m = find(ed.dataset.ed); if (m) { editKey = ed.dataset.ed; ui.ta.value = m.text || ''; ui.ta.focus(); ui.ta.dispatchEvent(new Event('input')); ui.ta.placeholder = 'تعديل الرسالة… (Enter للحفظ)'; } return; }
             const b = e.target.closest('[data-open]'); if (b) { const m = find(b.dataset.open); if (m && m.file) openFile(m.file); }
         });
@@ -269,7 +273,7 @@
     function listFor(conv) {
         let a = Object.keys(store(conv)).map(k => Object.assign({ k, conv }, msgs[conv][k]));
         if (role === 's') a = a.concat(Object.keys(store('all')).map(k => Object.assign({ k, conv: 'all' }, msgs.all[k])));
-        if (role === 't') a = a.filter(x => !(x.from === 's' && x.file));      /* [M6] ملفات الطالب تُعرض في الشريط الجانبي لا في المحادثة */
+        /* [CB-DEL4] ملفات الطالب تظهر الآن في المحادثة نفسها (الشريط الجانبي حُذف) */
         if (role === 's') a = a.filter(x => !x.hw);      /* [M2] ملفات الواجب/الاختبار تصل للمدرس فقط ولا تظهر في رسائل الطالب */
         return a.sort((x, y) => (x.ts || 0) - (y.ts || 0));
     }
@@ -325,7 +329,7 @@
                 '<div class="cb-act"><a class="cb-a" href="' + f.data + '" download="' + esc(f.name) + '">' + IC.dl + ' تحميل</a>' + (role === 't' && /pdf/.test(f.type) ? '<button class="cb-a" data-open="' + m.k + '">' + IC.open + ' فتح في الملفات</button>' + (m.from === 's' ? '<button class="cb-a" data-fix="' + m.k + '">' + IC.fix + ' تصحيح</button>' : '') : '') + '</div>';
         }
         if (m.voice) h += '<audio class="cb-au" controls preload="metadata" src="' + m.voice.data + '"></audio>';
-        h += '<span class="cb-ts">' + fmt(m.ts || Date.now()) + (mine && m.text && !m.file && !m.voice && m.conv !== 'all' ? '<button class="cb-ed" data-ed="' + m.k + '">تعديل</button>' : '') + (mine ? '<b class="cb-st">' + (ack[m.k] === 'ok' ? ' ✓' : ack[m.k] === 'err' ? ' ✗ لم تُرسل' : ack[m.k] === 'wait' ? ' …' : '') + '</b>' : '') + '</span>';
+        h += '<span class="cb-ts">' + fmt(m.ts || Date.now()) + (role === 't' ? '<button class="cb-dl2" data-del="' + m.k + '" title="حذف الرسالة">🗑 حذف</button>' : '') + (mine && m.text && !m.file && !m.voice && m.conv !== 'all' ? '<button class="cb-ed" data-ed="' + m.k + '">تعديل</button>' : '') + (mine ? '<b class="cb-st">' + (ack[m.k] === 'ok' ? ' ✓' : ack[m.k] === 'err' ? ' ✗ لم تُرسل' : ack[m.k] === 'wait' ? ' …' : '') + '</b>' : '') + '</span>';
         d.innerHTML = h; return d;
     }
     function emptyEl() {
@@ -339,7 +343,6 @@
         ui.body.scrollTop = ui.body.scrollHeight; updSide();
     }
     function appendOne(m) {
-        if (role === 't' && m.from === 's' && m.file) { updSide(); return; }
         const em = ui.body.querySelector('.cb-empty'); if (em) em.remove();
         const near = ui.body.scrollHeight - ui.body.scrollTop - ui.body.clientHeight < 160 || m.from === role;
         ui.body.appendChild(node(m)); if (near) ui.body.scrollTop = ui.body.scrollHeight;
@@ -364,23 +367,8 @@
     }
     const pend = {};   /* [SL3] تغييرات التفعيل بانتظار زر حفظ */
     /* [CQ2] طلبات الكود: «إرسال الكود» يسجّل كودًا للطالب ويفتح واتساب على رقمه بالرسالة جاهزة */
-    function drawQ() {
-        const Q = document.getElementById('slQ'); if (!Q) return;
-        const rs = (window.MC && MC.students && MC.students.codeRequests) ? MC.students.codeRequests() : [];
-        const sg = JSON.stringify(rs.map(r => [r.id, r.name, r.phone, MC.students.isBlocked(r.phone)])); if (sg === Q._sig) return; Q._sig = sg;
-        Q.innerHTML = rs.length ? '<div class="q-h">طلبات الكود (' + rs.length + ')</div>' : '';
-        rs.forEach(r => {
-            const d = document.createElement('div'); d.className = 'q-r'; const bl = MC.students.isBlocked(r.phone); if (bl) d.style.opacity = '.55';
-            d.innerHTML = '<b title="' + esc(r.name) + ' — ' + esc(r.phone) + '">' + esc(r.name) + '</b><button class="as-s as-k"' + (bl ? ' disabled' : '') + ' title="' + (bl ? 'محظور' : 'توليد كود وتسجيله وإرساله لواتس الطالب') + '"><span class="' + (bl ? '' : 'kp') + '">🔑</span></button><label class="bl-k" title="حظر هذا الرقم من طلب الكود"><input type="checkbox"' + (bl ? ' checked' : '') + '>حظر</label><button class="rq-x" title="حذف هذا الطلب">×</button>';
-            d.querySelector('.rq-x').onclick = () => MC.students.rejectCode(r.id);
-            d.querySelector('.as-s').onclick = e => { e.stopPropagation(); MC.students.autoSend(r); };
-            d.querySelector('.bl-k input').onchange = e => { MC.students.setBlocked(r.phone, e.target.checked); Q._sig = ''; drawQ(); };
-            Q.appendChild(d);
-        });
-    }
-    window.addEventListener('mc:codereq', () => { try { say('وصل طلب كود جديد من طالب'); } catch (e) { } });
     function drawSl() {
-        if (role !== 't') return; drawQ(); const L = document.getElementById('slL'); if (!L) return;
+        if (role !== 't') return; const L = document.getElementById('slL'); if (!L) return;
         const qn = ($('#slN').value || '').trim().toLowerCase(), qc = ($('#slC').value || '').trim().toLowerCase();
         const rs = roster().filter(r => (!qn || String(r.name || '').toLowerCase().includes(qn)) && (!qc || String(r.code || '').toLowerCase().includes(qc)));
         rs.sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0) || String(a.name).localeCompare(String(b.name), 'ar'));
@@ -419,18 +407,9 @@
     }
     /* [IN3] تصحيح الاختبار داخل نافذة الرسائل: تتسع النافذة لتحتضن الورقة ثم تعود لحجمها عند الإغلاق */
     let gSave = null;
-    CB.gradeHost = function () {
-        if (!cfg || role !== 't') return null;
-        if (work) {   /* [SB6] التصحيح داخل نافذة المشتركين بجانب ملفات الطالب */
-            try { MC.students.openSubs(true); } catch (e) { }
-            work.classList.add('gr'); const g = $('#cbGh'); g.style.bottom = '0'; return g;
-        }
-        if (!shown) CB.open(cur);
-        gSave = gSave || { nofp: win.classList.contains('nofp') };   /* [IN4] لا تغيير لحجم النافذة الحالي */
-        collapsed = false; win.classList.remove('col'); win.classList.add('gr'); win.classList.remove('nofp');
-        const gh = $('#cbGh'); gh.style.bottom = (ui.comp ? ui.comp.offsetHeight : 0) + 'px'; return gh;   /* لا يغطي شريط الرسائل السفلي */
-    };
+    CB.gradeHost = function () { return window.__exGH ? window.__exGH() : null; };   /* [G8] داخل نافذة الاختبار إن وُجد مضيف، وإلا نافذة مستقلة */   /* [G7] التصحيح نافذة مستقلة بكامل أدواتها (لا داخل نافذة الرسائل) */
     CB.gradeDone = function () {
+        if (window.__exGD) { try { window.__exGD(); } catch (e) { } }
         if (work) work.classList.remove('gr');
         win.classList.remove('gr'); if (!gSave) return;
         win.classList.toggle('nofp', gSave.nofp); gSave = null;
@@ -534,18 +513,10 @@
     }
     /* [M3] إجابات الاختبار تظهر للمدرس داخل نافذة الرسائل كبطاقة مع زر «فتح وتصحيح» */
     const sidOf = conv => String(conv || '').split('_')[0];
-    function examSubs(conv) { try { return role === 't' && window.MCExam && MCExam.subsOf ? (MCExam.subsOf(sidOf(conv)) || []) : []; } catch (e) { return []; } }
-    function examNode(exs) {
-        const d = document.createElement('div'); d.className = 'cb-m ex';
-        const p = peers().find(x => convOf(x) === cur), nm = p ? p.name : 'طالب';
-        d.innerHTML = '<div class="cb-hwt" style="color:#bfdbfe">📝 إجابات اختبار (' + exs.length + ')</div><div class="cb-act">' +
-            exs.map((s, i) => '<button class="cb-a" data-i="' + i + '">' + IC.fix + ' ' + new Date(s.ts || 0).toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' }) + ' — فتح وتصحيح</button>').join('') + '</div>';
-        d.querySelectorAll('[data-i]').forEach(bt => { bt.onclick = () => { const s = exs[+bt.dataset.i]; if (window.MCExam && MCExam.grade) MCExam.grade(s, nm); else if (MCExam && MCExam.tray) MCExam.tray(sidOf(cur), cur, win, nm); }; });
-        return d;
-    }
+    function examSubs(conv) { return []; /* [CB-DEL2] بيانات الاختبار حُذفت من نافذة الرسائل */ try { return role === 't' && window.MCExam && MCExam.subsOf ? (MCExam.subsOf(sidOf(conv)) || []) : []; } catch (e) { return []; } }
     /* [M6.2] لوحة الملفات داخل نافذة الرسائل (المعلم): شريط أيمن فيه ملفات الطالب ومواصفاتها (واجب / اختبار / ملفات)،
        وتحته الأزرار، والعرض يتم داخل شاشة الرسائل نفسها وتبقى الملفات حتى نهاية الجلسة */
-    let fpKind = 'ex', fpSel = null, fpSig = '';   /* [M9] تبويب «اختبار» هو الافتراضي */
+    let fpKind = 'hw', fpSel = null, fpSig = '';   /* [M9] تبويب «اختبار» هو الافتراضي */
     const blobs = {};
     function sideItems(kind) {
         if (role !== 't' || !cur) return [];
@@ -643,13 +614,12 @@
         });
         fp.addEventListener('dblclick', e => { const i = e.target.closest('.fp-i'); if (!i) return; const it = sideItems(fpKind).find(x => x.key === i.dataset.key); if (it && it.ex) { const p = peers().find(z => convOf(z) === cur); if (window.MCExam && MCExam.grade) MCExam.grade(it.ex, p ? p.name : 'طالب'); } });
         $('#cbVw').addEventListener('click', e => { if (e.target.closest('#vwBack')) { hideViewer(); return; } const b = e.target.closest('[data-a]'); if (b) act(b.dataset.a); });
-        $('#cbFpT').addEventListener('click', () => { if (work) { try { MC.students.openSubs(true); } catch (e) { } } else win.classList.toggle('nofp'); });
+        if ($('#cbFpT')) $('#cbFpT').addEventListener('click', () => { if (work) { try { MC.students.openSubs(true); } catch (e) { } } else win.classList.toggle('nofp'); });
         $('#fpX').addEventListener('click', () => { if (work) work.classList.remove('show'); else win.classList.add('nofp'); });   /* [M10] إغلاق الجزء الأيمن */
     }
     let exN = {};
     setInterval(() => {      /* إعادة الرسم عند وصول/تغيّر إجابات اختبار الطالب المفتوحة محادثته + إضاءة الظرف */
         if (role !== 't') return;
-        if (shown && cur && !collapsed) { const n = examSubs(cur).length; if (n !== exN[cur]) { exN[cur] = n; render(); } }
         updSide();
         updFlags();
     }, 2000);
@@ -698,7 +668,7 @@
     function updFlags() {
         document.querySelectorAll('.stu-flags[data-conv]').forEach(e => { const f = CB.flags(e.dataset.conv), v = e.querySelector('.fl-v'); if (v) v.classList.toggle('on', !!f.v); });
         /* [M4] الظرف يُضاء إن وُجد واجب/ملف أو إجابات اختبار من الطالب */
-        document.querySelectorAll('.eb-msg[data-conv]').forEach(b => { const f = CB.flags(b.dataset.conv); b.classList.toggle('hasf', !!(f.f || examSubs(b.dataset.conv).length)); });
+        document.querySelectorAll('.eb-msg[data-conv]').forEach(b => { const f = CB.flags(b.dataset.conv); b.classList.toggle('hasf', !!f.f); });
     }
     CB.updFlags = updFlags;
     CB.lastVoice = function (conv) { const m = msgs[conv] || {}; let best = null; for (const k in m) { const x = m[k]; if (x && x.from === 's' && x.voice && (!best || (x.ts || 0) >= (best.ts || 0))) best = x; } return best ? best.voice.data : null; };

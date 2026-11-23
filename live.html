@@ -18,6 +18,7 @@
     <a href="index.html" id="homeLink" style="position:absolute;top:10px;right:14px;font-size:12px;color:#94a3b8;text-decoration:none">← الرئيسية</a>
     <div class="entry-sub">WITH MR. FARAG | ONLINE LESSONS</div>
     <div id="formPart">
+      <div class="entry-ttl">بيانات الطالب</div>
       <!-- [EN1] ترتيب الدخول: الاسم ← رقم الواتس ← الصف (قائمة) ← صف واحد (البلد/المحافظة/القطر) ← الكود ← زر واحد ينقلب -->
       <input type="text" id="studentName" class="entry-field" placeholder="الاسم (ثنائي على الأقل)" autocomplete="name">
       <div class="wa-field">
@@ -40,7 +41,7 @@
       <div id="secretErr" class="entry-err"></div>
       <div id="enNote" style="display:none;color:#fca5a5;font-size:12px;text-align:center;margin-top:6px"></div>
       <!-- زر واحد فقط: ينقلب بين «دخول» و«طلب كود» حسب حالة الطالب -->
-      <button id="entryBtn" class="entry-btn entry-btn-single" type="button" data-mode="request">🔑 طلب كود</button>
+      <button id="entryBtn" class="entry-btn entry-btn-single btn-request" type="button" data-mode="request">طلب كود</button>
     </div>
     <div id="waitPart" style="display:none">
       <div class="entry-marquee-wrap">
@@ -62,7 +63,7 @@
   <div class="welcome" id="welcome"></div>
   <div class="stats">
     <!-- [X1] زر الاختبار: لا تظهر رسالة الاختبار للطالب إلا بعد الضغط عليه (على يمين كلمة مباشر) -->
-    <button id="examBtn" type="button" title="الاختبارات" style="border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#cbd5e1;border-radius:999px;padding:2px 10px;font:700 12px inherit;font-family:inherit;cursor:pointer;margin-inline-end:8px">📝 اختبار<b id="examBadge" style="display:none;margin-inline-start:5px;background:#dc2626;color:#fff;border-radius:8px;padding:0 5px;font-size:10px">1</b></button>
+    
     <span class="live"><i class="dot-live"></i>مباشر</span>
     <span title="الطلاب المتصلون">👥 <b id="cnt">0</b></span>
     <span title="مدة وجودك في الحصة">🕒 <b id="sessionTimer">00:00</b></span>
@@ -188,8 +189,8 @@
 <script src="projectile.js?v=5"></script>
 <script src="widgets-s.js?v=2"></script>
 <script src="video-s.js?v=1"></script>
-<script src="examview.js?v=20"></script>
-<script src="student.js?v=33"></script>
+<script src="examview.js?v=22"></script>
+<script src="student.js?v=36"></script>
 <script src="student-cam.js?v=19"></script>
 
 

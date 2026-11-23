@@ -67,7 +67,8 @@
     const imgSrc = {};         /* مفتاح الصورة → dataURL */
     let teacherCur = null;     /* شريحة المدرس الحالية */
     let active = null;         /* الشريحة المعروضة عندي */
-    let fitMode = 'one', scale = 1;   /* one = 100% مثل المدرس (الافتراضي) | width | page | free */
+    let fitMode = 'one', fitF = 'one', scale = 1;   /* [FV1] fitF: ملاءمة الملف (one=100% | page=Fit كامل الصفحة) */
+    (function () { const st = document.createElement('style'); st.textContent = '.view-wrap.is-file{direction:ltr;justify-content:flex-start;align-items:flex-start}.is-file #slideBox{margin:0!important}.zoomgrp{display:contents!important}#zoomOut,#zoomIn,#zoomVal{display:none!important}#fitBtn{display:inline-flex!important}'; document.head.appendChild(st); })();   /* one = 100% مثل المدرس (الافتراضي) | width | page | free */
     let segs = [];             /* رسم القلم المباشر الذي لم تصل صفحته بعد */
     let shapePrev = null;      /* معاينة الشكل أثناء سحبه */
     let shownSlide = null;
@@ -83,6 +84,19 @@
         document.head.appendChild(st);
         const fit = () => { const tb = document.querySelector('.top-bar'); if (tb) document.documentElement.style.setProperty('--tbh', Math.round(tb.getBoundingClientRect().height) + 'px'); };
         fit(); window.addEventListener('resize', fit); setTimeout(fit, 600);
+    })();
+    /* [MC2] ألوان المايك: أحمر = أوقفه الطالب | باهت = غير مفعّل من المعلم | أخضر = مفعّل من الطرفين. العناوين أصغر. السبورة بلا هوامش */
+    (function () {
+        const st = document.createElement('style'); st.id = 'mc2Css';
+        st.textContent = '#micBtn{opacity:.45}#micBtn.on{opacity:1}' +
+            '#micBtn.live{opacity:1;background:#14532d!important;border-color:#22c55e!important;color:#4ade80!important}#micBtn.live .mic-svg{filter:drop-shadow(0 0 5px #22c55e)!important}#micBtn.live .mic-dots i{background:#4ade80!important}#micBtn.live .mic-dots i.lit{background:#4ade80!important;box-shadow:0 0 5px #22c55e!important}' +
+            '#micBtn.muted{opacity:1;background:#450a0a!important;border-color:#ef4444!important;color:#f87171!important}#micBtn.tmuted{opacity:.45}' +
+            '.sb-head,.sp-head{font-size:11px!important;padding-top:4px!important;padding-bottom:4px!important}.brand-name{font-size:12px!important}' +
+            '#slideBox,.fit-width #slideBox{margin:0 auto!important;outline:0!important}.view-wrap{padding:0!important}' +
+            'body.fit-full .slides-panel,body.fit-full .side-bar{display:none!important}' +
+            '#tmBanner{top:7px!important;max-width:min(70vw,420px)!important;padding:2px 12px!important;font-size:11px!important;line-height:1.5!important;border-radius:20px!important;z-index:100000!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}' +
+            '.follow-btn{position:fixed!important;top:8px!important;left:50%!important;z-index:99990!important;padding:2px 12px!important;font-size:11px!important}';   /* [MC3] التنبيهات في الشريط العلوي فقط */
+        document.head.appendChild(st);
     })();
     function toast(msg, cls) {
         const bx = $('toastBox'); if (bx) bx.innerHTML = '';   /* تنبيه واحد فقط داخل الشريط */
@@ -191,12 +205,15 @@
         }, 7000);
     }
 
+    /* [RQ1] زر «طلب كود»: رسمة إرسال ثم العبارة ثم رسمة واتس */
+    const REQ_HTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> <span>طلب كود</span> <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/><path d="M9 10c.5 2 2 3.5 4 4l1.2-1.2 1.6.8c-.3 1-1.2 1.6-2.3 1.4C10.5 14.4 8.6 12.5 8.3 10.2c-.1-1 .5-1.9 1.4-2.2l.8 1.6z"/></svg>';
+    (function () { const st = document.createElement('style'); st.textContent = '.entry-ttl{font:400 11px Cairo,system-ui,sans-serif;color:#93a9cf;letter-spacing:.4px;text-align:center;margin:0 0 8px;display:flex;align-items:center;gap:8px}.entry-ttl:before,.entry-ttl:after{content:"";flex:1;height:1px;background:rgba(147,169,207,.25)}#entryBtn svg{flex-shrink:0}#entryBtn.btn-request{display:inline-flex;align-items:center;justify-content:center;gap:6px}'; document.head.appendChild(st); })();
     /* تحديث نص الزر حسب حالة الطالب: «دخول» إن وُجد كود، «طلب كود» إن لم يُسجّل */
     function updateEntryButton() {
         const btn = $('entryBtn');
         const code = ($('studentSecret').value || '').trim();
         if (!code) {
-            btn.textContent = '🔑 طلب كود';
+            btn.innerHTML = REQ_HTML;
             btn.dataset.mode = 'request';
             btn.classList.add('btn-request');
         } else {
@@ -316,10 +333,10 @@
         try {
             await ref('codeRequests/' + uid).set(reqData);
             toast('✅ وصل طلبك للمدرس — أرسل رسالة واتساب التي فُتحت لك، وسيصلك الكود على واتس');
-            if (btn) { btn.disabled = false; btn.textContent = '🔑 طلب كود'; btn.classList.add('btn-request'); }
+            if (btn) { btn.disabled = false; btn.innerHTML = REQ_HTML; btn.classList.add('btn-request'); }
         } catch (e) {
             console.error('[requestCode] فشل:', e);
-            if (btn) { btn.disabled = false; btn.textContent = '🔑 طلب كود'; btn.classList.add('btn-request'); }
+            if (btn) { btn.disabled = false; btn.innerHTML = REQ_HTML; btn.classList.add('btn-request'); }
             const ecode = e && e.code || '';
             const emsg = e && e.message || String(e);
             if (ecode === 'PERMISSION_DENIED' || /permission/i.test(emsg)) {
@@ -807,6 +824,7 @@
     let tView = null;
     function applyView() {
         const id = curId(), pg = pagesData[id];
+        if (viewMode === 'file') { wrap.scrollTop = 0; wrap.scrollLeft = 0; return; }   /* [FV1] الملف ثابت عند left=0 top=0 */
         if (!tView || !pg || (viewMode !== 'file' && active !== teacherCur) || tView.sl !== id) return;
         wrap.scrollTop = Math.round(tView.y * scale);
         const maxX = box.offsetWidth - wrap.clientWidth;      /* RTL: scrollLeft بين -maxX و0 */
@@ -922,15 +940,19 @@
     }
 
     function computeScale(pg) {
+        /* [FV1] الملف: يبدأ بحجمه الطبيعي 100% عند left=0 / top=0 ثابتًا (لا يتبع تكبير المدرس ولا تمريره)، وزر Fit يلاءم الصفحة كاملة فلا حاجة لتحريك الشاشة */
+        const isF = viewMode === 'file';
+        document.body.classList.toggle('fit-full', (isF ? fitF : fitMode) === (isF ? 'page' : 'width'));   /* [MC3] عند Fit تختفي اللوحات الجانبية فتملأ السبورة الشاشة */
         const W = wrap.offsetWidth, H = wrap.clientHeight, sb = (wrap.offsetWidth - wrap.clientWidth) || 9;
-        let mode = fitMode;
-        wrap.classList.toggle('fit-width', mode === 'width');
-        wrap.style.overflowX = (mode === 'width') ? 'hidden' : 'auto';
-        wrap.style.background = (mode === 'width') ? (pg.bg || '') : '';   /* عند ملاءمة العرض تمتد خلفية السبورة */
+        wrap.classList.toggle('is-file', isF);
+        let mode = isF ? fitF : fitMode;
+        wrap.classList.toggle('fit-width', !isF && mode === 'width');
+        wrap.style.overflowX = (!isF && mode === 'width') ? 'hidden' : 'auto';
+        wrap.style.background = (!isF && mode === 'width') ? (pg.bg || '') : '';   /* عند ملاءمة العرض تمتد خلفية السبورة */
         if (mode === 'one') scale = 1;
-        else if (mode === 'width') { scale = (W - 38) / pg.w; if (pg.h * scale > H) scale = (W - 38 - sb) / pg.w; }
-        else if (mode === 'page') scale = Math.min((wrap.clientWidth - 38) / pg.w, (H - 38) / pg.h);
-        if (pg.zoom) { mode = 'one'; scale = pg.zoom; wrap.style.overflowX = 'auto'; wrap.classList.remove('fit-width'); wrap.style.background = ''; }
+        else if (mode === 'width') { scale = W / pg.w; if (pg.h * scale > H) scale = (W - sb) / pg.w; }   /* [MC2] بلا هوامش */
+        else if (mode === 'page') scale = Math.min(wrap.clientWidth / pg.w, H / pg.h);
+        if (pg.zoom && !isF) { mode = 'one'; scale = pg.zoom; wrap.style.overflowX = 'auto'; wrap.classList.remove('fit-width'); wrap.style.background = ''; }
         scale = Math.max(0.1, Math.min(5, scale));
         const next = { one: 'Fit', width: '100%', page: '100%', free: '100%', auto: 'Fit' };
         $('fitBtn').querySelector('.bl').textContent = next[mode] || '100%';
@@ -1030,13 +1052,13 @@
     $('prevBtn').addEventListener('click', () => step(-1));
     $('nextBtn').addEventListener('click', () => step(1));
     $('penBtn').addEventListener('click', () => setPen(!penOn));
-    $('zoomIn').addEventListener('click', () => { fitMode = 'free'; scale *= 1.15; renderMainFree(); });
-    $('zoomOut').addEventListener('click', () => { fitMode = 'free'; scale /= 1.15; renderMainFree(); });
+    $('zoomIn').addEventListener('click', () => { if (viewMode === 'file') fitF = 'free'; else fitMode = 'free'; scale *= 1.15; renderMainFree(); });
+    $('zoomOut').addEventListener('click', () => { if (viewMode === 'file') fitF = 'free'; else fitMode = 'free'; scale /= 1.15; renderMainFree(); });
     function renderMainFree() {            /* تكبير يدوي: نحفظ المقياس ثم نرسم */
         const keep = scale; renderMainWithScale(keep);
     }
     function renderMainWithScale(sc) {
-        const pg = pagesData[active]; if (!pg) return;
+        const pg = pagesData[curId()]; if (!pg) return;   /* [FV1] curId بدل active ليعمل التكبير على الملف */
         scale = Math.max(0.1, Math.min(5, sc));
         box.style.width = Math.round(pg.w * scale) + 'px';
         box.style.height = Math.round(pg.h * scale) + 'px';
@@ -1050,7 +1072,8 @@
     }
     $('fitBtn').addEventListener('click', () => {
         const m = $('fitBtn').dataset.mode || 'one';
-        fitMode = (m === 'one') ? 'width' : 'one';
+        if (viewMode === 'file') fitF = (m === 'page') ? 'one' : 'page';   /* [FV1] ملف: 100% ⇄ Fit كامل الصفحة */
+        else fitMode = (m === 'one') ? 'width' : 'one';
         renderMain();
     });
     $('followBtn').addEventListener('click', () => { if (teacherCur) { active = teacherCur; renderList(); renderMain(); } });
