@@ -94,10 +94,18 @@
             '.sb-head,.sp-head{font-size:11px!important;padding-top:4px!important;padding-bottom:4px!important}.brand-name{font-size:12px!important}' +
             '#slideBox,.fit-width #slideBox{margin:0 auto!important;outline:0!important}.view-wrap{padding:0!important}' +
             'body.fit-full .slides-panel,body.fit-full .side-bar{display:none!important}' +
-            'html,body{height:100dvh!important;touch-action:pan-x pan-y!important;overscroll-behavior:none}body{position:fixed!important;inset:0!important;width:100%!important}.view-wrap{touch-action:pan-x pan-y!important}.bot{flex-shrink:0!important;position:relative;z-index:50}' +   /* [MC4] الشريط السفلي ثابت ولا ينزلق بالتكبير */
+            'html,body{height:100dvh!important;touch-action:pan-x pan-y!important;overscroll-behavior:none}body{position:fixed!important;inset:0!important;width:100%!important}.view-wrap{touch-action:pan-x pan-y!important}.bot{position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:60!important;transform:none!important}.main-area{padding-bottom:var(--bot-h,56px)!important}' +
+            '.top-bar{position:relative}.top-bar .xs-btn{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:5}' +
+            '.stats .live{flex-direction:column!important;gap:1px!important;font-size:9px!important;line-height:1!important;align-items:center}.stats .live .dot-live{width:6px!important;height:6px!important}' +
+            '.brand-name{display:flex!important;flex-direction:column;line-height:1!important;font-size:11px!important;gap:0}.brand-name span{display:block}' +   /* [MC4] الشريط السفلي ثابت ولا ينزلق بالتكبير */
             '#tmBanner{top:7px!important;max-width:min(70vw,420px)!important;padding:2px 12px!important;font-size:11px!important;line-height:1.5!important;border-radius:20px!important;z-index:100000!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}' +
             '.follow-btn{position:fixed!important;top:8px!important;left:50%!important;z-index:99990!important;padding:2px 12px!important;font-size:11px!important}';   /* [MC3] التنبيهات في الشريط العلوي فقط */
         document.head.appendChild(st);
+    })();
+    /* [MC5] ارتفاع الشريط السفلي يُقاس فيبقى مستقلًا في مكانه مهما كُبّرت السبورة */
+    (function () {
+        const set = () => { const b = document.querySelector('.bot'); document.documentElement.style.setProperty('--bot-h', (b ? b.offsetHeight : 56) + 'px'); };
+        set(); window.addEventListener('resize', set); window.addEventListener('orientationchange', set); setTimeout(set, 600); setTimeout(set, 2000);
     })();
     function toast(msg, cls) {
         const bx = $('toastBox'); if (bx) bx.innerHTML = '';   /* تنبيه واحد فقط داخل الشريط */
