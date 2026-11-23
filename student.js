@@ -94,6 +94,7 @@
             '.sb-head,.sp-head{font-size:11px!important;padding-top:4px!important;padding-bottom:4px!important}.brand-name{font-size:12px!important}' +
             '#slideBox,.fit-width #slideBox{margin:0 auto!important;outline:0!important}.view-wrap{padding:0!important}' +
             'body.fit-full .slides-panel,body.fit-full .side-bar{display:none!important}' +
+            'html,body{height:100dvh!important;touch-action:pan-x pan-y!important;overscroll-behavior:none}body{position:fixed!important;inset:0!important;width:100%!important}.view-wrap{touch-action:pan-x pan-y!important}.bot{flex-shrink:0!important;position:relative;z-index:50}' +   /* [MC4] الشريط السفلي ثابت ولا ينزلق بالتكبير */
             '#tmBanner{top:7px!important;max-width:min(70vw,420px)!important;padding:2px 12px!important;font-size:11px!important;line-height:1.5!important;border-radius:20px!important;z-index:100000!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}' +
             '.follow-btn{position:fixed!important;top:8px!important;left:50%!important;z-index:99990!important;padding:2px 12px!important;font-size:11px!important}';   /* [MC3] التنبيهات في الشريط العلوي فقط */
         document.head.appendChild(st);
@@ -1062,7 +1063,7 @@
         scale = Math.max(0.1, Math.min(5, sc));
         box.style.width = Math.round(pg.w * scale) + 'px';
         box.style.height = Math.round(pg.h * scale) + 'px';
-        wrap.classList.remove('fit-width'); wrap.style.overflowX = 'auto';
+        wrap.classList.remove('fit-width'); wrap.style.overflowX = 'auto'; document.body.classList.remove('fit-full');
         curK = Math.min(scale * dpr(), 4096 / Math.max(pg.w, pg.h));
         baseCv.width = liveCv.width = Math.round(pg.w * curK);
         baseCv.height = liveCv.height = Math.round(pg.h * curK);
@@ -1070,6 +1071,34 @@
         $('zoomVal').textContent = Math.round(scale * 100) + '%';
         $('fitBtn').querySelector('.bl').textContent = '100%'; $('fitBtn').dataset.mode = 'free';
     }
+    /* [MC4] تكبير السبورة/الملف بالإصبعين (Pinch) مع بقاء النقطة بين الإصبعين ثابتة */
+    (function () {
+        let d0 = 0, s0 = 1, k = 1, on = false, px = 0, py = 0, cx0 = 0, cy0 = 0;
+        const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+        wrap.addEventListener('touchstart', e => {
+            if (e.touches.length !== 2) return;
+            const pg = pagesData[curId()]; if (!pg || box.style.display === 'none') return;
+            on = true; d0 = dist(e.touches) || 1; s0 = scale; k = 1;
+            cx0 = (e.touches[0].clientX + e.touches[1].clientX) / 2; cy0 = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const r = box.getBoundingClientRect(); px = (cx0 - r.left) / s0; py = (cy0 - r.top) / s0;
+            box.style.transformOrigin = (cx0 - r.left) + 'px ' + (cy0 - r.top) + 'px';
+        }, { passive: true });
+        wrap.addEventListener('touchmove', e => {
+            if (!on || e.touches.length !== 2) return; e.preventDefault();
+            k = Math.max(0.3 / s0, Math.min(5 / s0, dist(e.touches) / d0)); box.style.transform = 'scale(' + k + ')';
+        }, { passive: false });
+        const end = e => {
+            if (!on || (e.touches && e.touches.length >= 2)) return; on = false;
+            box.style.transform = ''; box.style.transformOrigin = '';
+            if (Math.abs(k - 1) < 0.02) return;
+            if (viewMode === 'file') fitF = 'free'; else fitMode = 'free';
+            renderMainWithScale(s0 * k);
+            const r2 = box.getBoundingClientRect();
+            wrap.scrollLeft += (r2.left + px * scale) - cx0; wrap.scrollTop += (r2.top + py * scale) - cy0;
+        };
+        wrap.addEventListener('touchend', end); wrap.addEventListener('touchcancel', end);
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach(g => document.addEventListener(g, e => e.preventDefault()));   /* iOS: لا يكبّر الصفحة كلها */
+    })();
     $('fitBtn').addEventListener('click', () => {
         const m = $('fitBtn').dataset.mode || 'one';
         if (viewMode === 'file') fitF = (m === 'page') ? 'one' : 'page';   /* [FV1] ملف: 100% ⇄ Fit كامل الصفحة */
