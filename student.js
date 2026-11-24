@@ -88,9 +88,9 @@
     /* [MC2] ألوان المايك: أحمر = أوقفه الطالب | باهت = غير مفعّل من المعلم | أخضر = مفعّل من الطرفين. العناوين أصغر. السبورة بلا هوامش */
     (function () {
         const st = document.createElement('style'); st.id = 'mc2Css';
-        st.textContent = '#micBtn{opacity:.45}#micBtn.on{opacity:1}' +
+        st.textContent = '#micBtn:not(.live):not(.muted){background:transparent!important;border-color:#60a5fa!important;color:#dbeafe!important}#micBtn:not(.live):not(.muted) .mic-svg{stroke:currentColor!important}#micBtn.live,#micBtn.muted{filter:none!important}' +   /* [MC6] المايك غير المفعّل بنفس مظهر زر الكاميرا */
             '#micBtn.live{opacity:1;background:#14532d!important;border-color:#22c55e!important;color:#4ade80!important}#micBtn.live .mic-svg{filter:drop-shadow(0 0 5px #22c55e)!important}#micBtn.live .mic-dots i{background:#4ade80!important}#micBtn.live .mic-dots i.lit{background:#4ade80!important;box-shadow:0 0 5px #22c55e!important}' +
-            '#micBtn.muted{opacity:1;background:#450a0a!important;border-color:#ef4444!important;color:#f87171!important}#micBtn.tmuted{opacity:.45}' +
+            '#micBtn.muted{opacity:1;background:#450a0a!important;border-color:#ef4444!important;color:#f87171!important}#micBtn.tmuted{background:var(--panel2)!important;color:var(--text)!important}' +
             '.sb-head,.sp-head{font-size:11px!important;padding-top:4px!important;padding-bottom:4px!important}.brand-name{font-size:12px!important}' +
             '#slideBox,.fit-width #slideBox{margin:0 auto!important;outline:0!important}.view-wrap{padding:0!important}' +
             'body.fit-full .slides-panel,body.fit-full .side-bar{display:none!important}' +
@@ -694,11 +694,23 @@
         if (on && !penCv) {
             penCv = document.createElement('canvas'); penCv.id = 'penCv'; const host = $('slideBox') || document.body; host.appendChild(penCv);
             const pos = e => { const r = penCv.getBoundingClientRect(); return { x: (e.clientX - r.left) * penCv.width / r.width, y: (e.clientY - r.top) * penCv.height / r.height }; };
-            penCv.addEventListener('pointerdown', e => { penDown = true; penCv.setPointerCapture(e.pointerId); const c = penCv.getContext('2d'), p = pos(e); c.strokeStyle = '#7dd3fc'; c.lineWidth = 3 * penCv.width / penCv.getBoundingClientRect().width; c.lineCap = c.lineJoin = 'round'; c.beginPath(); c.moveTo(p.x, p.y); });
-            penCv.addEventListener('pointermove', e => { if (!penDown) return; const c = penCv.getContext('2d'), p = pos(e); c.lineTo(p.x, p.y); c.stroke(); });
-            penCv.addEventListener('pointerup', () => { penDown = false; });
+            /* [PN1] القلم يرسم على شاشة الطالب ويرسل خطوطه للمعلم (studentInk/<id>) فيراها على سبورته */
+            let inkPts = [], inkPg = null; const npos = e => { const r = penCv.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
+            const inkEnd = () => {
+                if (!penDown) return; penDown = false;
+                if (inkPts.length) { try {
+                    let pts = inkPts; if (pts.length > 600) { const st = pts.length / 600; pts = Array.from({ length: 600 }, (_, k) => inkPts[Math.floor(k * st)]); pts.push(inkPts[inkPts.length - 1]); }
+                    const pg = (typeof curId === 'function') ? curId() : 'B', rr = ref('studentInk/' + myId);
+                    if (inkPg !== pg) { rr.remove(); inkPg = pg; }
+                    rr.push({ p: pts.map(q => q[0].toFixed(4) + ',' + q[1].toFixed(4)).join(';'), c: '#ef4444', w: 0.004, pg: String(pg), ts: Date.now() });
+                } catch (er) { } }
+                inkPts = [];
+            };
+            penCv.addEventListener('pointerdown', e => { e.preventDefault(); penDown = true; try { penCv.setPointerCapture(e.pointerId); } catch (er) { } const c = penCv.getContext('2d'), p = pos(e); inkPts = [npos(e)]; c.strokeStyle = '#ef4444'; c.lineWidth = Math.max(3, 0.004 * penCv.width); c.lineCap = c.lineJoin = 'round'; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x + 0.1, p.y); c.stroke(); });
+            penCv.addEventListener('pointermove', e => { if (!penDown) return; e.preventDefault(); const c = penCv.getContext('2d'), p = pos(e); c.lineTo(p.x, p.y); c.stroke(); inkPts.push(npos(e)); });
+            penCv.addEventListener('pointerup', inkEnd); penCv.addEventListener('pointercancel', inkEnd); penCv.addEventListener('lostpointercapture', inkEnd);
         }
-        if (penCv) { if (!on) { const c = penCv.getContext('2d'); c.clearRect(0, 0, penCv.width, penCv.height); } penCv.style.display = on ? 'block' : 'none'; if (on) { const r = penCv.parentNode.getBoundingClientRect(); penCv.width = Math.round(r.width); penCv.height = Math.round(r.height); } }
+        if (penCv) { if (!on) { const c = penCv.getContext('2d'); c.clearRect(0, 0, penCv.width, penCv.height); try { ref('studentInk/' + myId).remove(); } catch (er) { } } penCv.style.display = on ? 'block' : 'none'; if (on) { const r = penCv.parentNode.getBoundingClientRect(); penCv.width = Math.round(r.width); penCv.height = Math.round(r.height); } }
     }
     function applyVis() {
         const fileOk = !!(vis.file && fileMeta && fileMeta.n);
