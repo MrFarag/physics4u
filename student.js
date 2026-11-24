@@ -102,9 +102,37 @@
             '.follow-btn{position:fixed!important;top:8px!important;left:50%!important;z-index:99990!important;padding:2px 12px!important;font-size:11px!important}';   /* [MC3] التنبيهات في الشريط العلوي فقط */
         document.head.appendChild(st);
     })();
+    /* [RL1] شريط أدوات عمودي مستقل على اليمين (خارج السبورة) */
+    (function () {
+        const st = document.createElement('style'); st.id = 'railCss';
+        st.textContent =
+          'body .bot{position:absolute!important;top:42px!important;bottom:0!important;right:0!important;left:auto!important;width:58px!important;height:auto!important;min-height:0!important;flex-direction:column!important;justify-content:flex-start!important;align-items:center!important;overflow-y:auto!important;overflow-x:hidden!important;padding:6px 3px!important;gap:5px!important;border-top:0!important;border-left:1px solid var(--border,#334155)!important;z-index:60!important}' +
+          'body .bot .bb{width:48px!important;min-width:48px!important;height:44px!important;flex:0 0 auto!important}' +
+          'body .bot .zoomgrp{display:flex!important;flex-direction:column!important;gap:5px!important;align-items:center}' +
+          'body .bot .bb-txt{min-width:0!important;font-size:11px}body .bot .bb-sep{display:block!important;width:34px!important;height:1px!important;margin:2px 0!important}' +
+          'body .bot .rail-off{display:none!important}' +
+          'body .main-area{padding-bottom:0!important;padding-right:58px!important;box-sizing:border-box}' +
+          /* [TB1] الشريط العلوي: خروج أقصى اليمين، الزمن+مباشر في المنتصف، واتس+الاسم أقصى اليسار، والتنبيهات بين الخروج والمنتصف */
+          'body .top-bar{position:relative!important;justify-content:flex-start!important;gap:8px!important;padding:0 6px!important}' +
+          'body .top-bar #exitBtn{display:inline-flex!important;align-items:center;justify-content:center;width:34px!important;min-width:34px!important;height:28px!important;padding:0!important;border-radius:8px;border:1px solid #f87171;background:linear-gradient(135deg,#7f1d1d,#dc2626);color:#fee2e2;cursor:pointer;flex:0 0 auto}' +
+          'body .top-bar #exitBtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}body .top-bar #exitBtn .bl{display:none}' +
+          'body .top-bar #exitBtn{position:absolute!important;left:6px!important;top:50%!important;transform:translateY(-50%)!important;z-index:70!important;visibility:visible!important;opacity:1!important}body .top-bar .brand{gap:5px!important}body .top-bar{height:32px!important;min-height:32px!important}body .top-bar #exitBtn{height:24px!important;width:30px!important;min-width:30px!important}body .bot{top:var(--tbh,32px)!important}' +
+          'body .top-bar .wa-btn{width:20px!important;height:20px!important;font-size:11px!important}' +
+          'body .top-bar .brand-name{flex-direction:row!important;gap:4px!important;font:700 12px Cairo,sans-serif!important;color:#cbd5e1!important;white-space:nowrap}' +
+          'body .top-bar .welcome{display:none!important}' +
+          'body .top-bar .stats{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;gap:10px!important;white-space:nowrap}body .top-bar .stats span:nth-child(3){display:none!important}' +
+          'body #toastBox{left:48px!important;right:auto!important;transform:none!important;max-width:calc(50vw - 125px)!important}' +
+          'body #tmBanner{left:48px!important;right:auto!important;transform:none!important;max-width:calc(50vw - 125px)!important}body .follow-btn{left:48px!important;right:auto!important;transform:none!important}body .top-bar .xs-btn{left:48px!important;right:auto!important;transform:translateY(-50%)!important;max-width:calc(50vw - 125px)!important}' +
+          '@media(max-width:600px){body #toastBox,body #tmBanner,body .top-bar .xs-btn{max-width:calc(100vw - 48px - 150px)!important}}' +
+          '#snapBtn{background:linear-gradient(135deg,#065f46,#10b981)!important;color:#ecfdf5!important;border-color:#34d399!important}' +
+          /* [RL4] السبب الحقيقي لاختفاء القلم: student.css سطر 219 يخفي #penBtn و#saveBtn و#saveMenu بـ !important */
+          'body .bot #penBtn:not(.rail-off),body .bot #saveBtn:not(.rail-off){display:inline-flex!important}body #saveMenu[style*="flex"]{display:flex!important}' +
+          'body .bot #penBtn.pen-on{box-shadow:0 0 0 2px #f59e0b inset}';
+        document.head.appendChild(st);
+    })();
     /* [MC5] ارتفاع الشريط السفلي يُقاس فيبقى مستقلًا في مكانه مهما كُبّرت السبورة */
     (function () {
-        const set = () => { const b = document.querySelector('.bot'); document.documentElement.style.setProperty('--bot-h', (b ? b.offsetHeight : 56) + 'px'); };
+        const set = () => { const b = document.querySelector('.bot'); document.documentElement.style.setProperty('--bot-h', '0px'); };
         set(); window.addEventListener('resize', set); window.addEventListener('orientationchange', set); setTimeout(set, 600); setTimeout(set, 2000);
     })();
     function toast(msg, cls) {
@@ -605,7 +633,7 @@
         const b = $('micBtn'); if (!b) return; b.classList.add('hint');
         let h = document.getElementById('micHint');
         if (!h) { h = document.createElement('div'); h.id = 'micHint'; h.textContent = 'اضغط على المايك لتفعيله'; document.body.appendChild(h); clearTimeout(window.__mhT); window.__mhT = setTimeout(hideMicHint, 15000); }
-        const r = b.getBoundingClientRect(); h.style.left = Math.max(8, Math.min(innerWidth - 168, r.left + r.width / 2 - 80)) + 'px'; h.style.bottom = (innerHeight - r.top + 10) + 'px';
+        const r = b.getBoundingClientRect(); h.style.left = Math.max(8, r.left - 172) + 'px'; h.style.bottom = 'auto'; h.style.top = Math.max(6, r.top) + 'px';
         h.style.setProperty('--ax', (r.left + r.width / 2 - parseFloat(h.style.left)) + 'px');
     }
     function hideMicHint() { const b = $('micBtn'); if (b) b.classList.remove('hint'); const h = document.getElementById('micHint'); if (h) h.remove(); }
@@ -688,29 +716,82 @@
         if (viewMode === 'file' && String(fileMeta.cur) === String(n)) renderMain();
         else if (vis.file && viewMode === 'board' && !fileShown && String(fileMeta.cur) === String(n)) { fileShown = true; viewMode = 'file'; applyVis(); }
     }
-    let penOn = false, penCv = null, penDown = false;
-    function setPen(on) {
-        penOn = on; const b = $('penBtn'); if (b) b.classList.toggle('pen-on', on);
-        if (on && !penCv) {
-            penCv = document.createElement('canvas'); penCv.id = 'penCv'; const host = $('slideBox') || document.body; host.appendChild(penCv);
-            const pos = e => { const r = penCv.getBoundingClientRect(); return { x: (e.clientX - r.left) * penCv.width / r.width, y: (e.clientY - r.top) * penCv.height / r.height }; };
-            /* [PN1] القلم يرسم على شاشة الطالب ويرسل خطوطه للمعلم (studentInk/<id>) فيراها على سبورته */
-            let inkPts = [], inkPg = null; const npos = e => { const r = penCv.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
-            const inkEnd = () => {
-                if (!penDown) return; penDown = false;
-                if (inkPts.length) { try {
-                    let pts = inkPts; if (pts.length > 600) { const st = pts.length / 600; pts = Array.from({ length: 600 }, (_, k) => inkPts[Math.floor(k * st)]); pts.push(inkPts[inkPts.length - 1]); }
-                    const pg = (typeof curId === 'function') ? curId() : 'B', rr = ref('studentInk/' + myId);
-                    if (inkPg !== pg) { rr.remove(); inkPg = pg; }
-                    rr.push({ p: pts.map(q => q[0].toFixed(4) + ',' + q[1].toFixed(4)).join(';'), c: '#ef4444', w: 0.004, pg: String(pg), ts: Date.now() });
-                } catch (er) { } }
-                inkPts = [];
-            };
-            penCv.addEventListener('pointerdown', e => { e.preventDefault(); penDown = true; try { penCv.setPointerCapture(e.pointerId); } catch (er) { } const c = penCv.getContext('2d'), p = pos(e); inkPts = [npos(e)]; c.strokeStyle = '#ef4444'; c.lineWidth = Math.max(3, 0.004 * penCv.width); c.lineCap = c.lineJoin = 'round'; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x + 0.1, p.y); c.stroke(); });
-            penCv.addEventListener('pointermove', e => { if (!penDown) return; e.preventDefault(); const c = penCv.getContext('2d'), p = pos(e); c.lineTo(p.x, p.y); c.stroke(); inkPts.push(npos(e)); });
-            penCv.addEventListener('pointerup', inkEnd); penCv.addEventListener('pointercancel', inkEnd); penCv.addEventListener('lostpointercapture', inkEnd);
-        }
-        if (penCv) { if (!on) { const c = penCv.getContext('2d'); c.clearRect(0, 0, penCv.width, penCv.height); try { ref('studentInk/' + myId).remove(); } catch (er) { } } penCv.style.display = on ? 'block' : 'none'; if (on) { const r = penCv.parentNode.getBoundingClientRect(); penCv.width = Math.round(r.width); penCv.height = Math.round(r.height); } }
+    /* [SB1] سبورة الطالب: لوح مستقل في الثلث السفلي، خلفية داكنة، قلم فاتح، ممحاة، زر إغلاق. خطوطها تُرسَل للمعلم (studentInk/<id>) */
+    let penOn = false, penCv = null, penDown = false, sbBox = null, sbStrokes = [], sbEraser = false, sbCur = null;
+    const SB_COL = '#fde047', SB_W = 0.006;
+    function sbDraw() {
+        if (!penCv) return; const c = penCv.getContext('2d'); c.clearRect(0, 0, penCv.width, penCv.height); c.lineCap = c.lineJoin = 'round';
+        sbStrokes.concat(sbCur ? [sbCur] : []).forEach(st => { if (!st.pts.length) return; c.strokeStyle = st.c; c.lineWidth = Math.max(2, SB_W * penCv.width); c.beginPath();
+            st.pts.forEach((q, k) => k ? c.lineTo(q[0] * penCv.width, q[1] * penCv.height) : c.moveTo(q[0] * penCv.width, q[1] * penCv.height));
+            if (st.pts.length === 1) c.lineTo(st.pts[0][0] * penCv.width + 0.1, st.pts[0][1] * penCv.height); c.stroke(); });
+    }
+    function sbSize() { if (!penCv || !sbBox || sbBox.style.display === 'none') return; const r = penCv.getBoundingClientRect(); const w = Math.round(r.width), h = Math.round(r.height); if (w > 10 && h > 10 && (penCv.width !== w || penCv.height !== h)) { penCv.width = w; penCv.height = h; } sbDraw(); }
+    /* [SB2] السبورة قابلة للتحريك داخل الحيّز: من الشريط الأيمن (الأدوات) حتى حافة الشاشة اليسرى (السكرول) ومن أسفل الشريط العلوي للأسفل */
+    function sbRegion() { const b = document.querySelector('.bot'), tb = document.querySelector('.top-bar'); return { l: 0, r: b ? b.getBoundingClientRect().left : innerWidth - 58, t: tb ? tb.getBoundingClientRect().bottom : 42, b: innerHeight }; }
+    function sbPlace(reset) {
+        if (!sbBox) return; const R = sbRegion(), W = R.r - R.l, H = R.b - R.t;
+        let w = reset || !sbBox._w ? W : Math.min(sbBox._w, W), h = reset || !sbBox._h ? Math.round(innerHeight / 3) : Math.min(sbBox._h, H);
+        let l = reset || sbBox._l == null ? R.l : sbBox._l, t = reset || sbBox._t == null ? R.b - h : sbBox._t;
+        l = Math.max(R.l, Math.min(R.r - w, l)); t = Math.max(R.t, Math.min(R.b - h, t));
+        Object.assign(sbBox, { _w: w, _h: h, _l: l, _t: t }); const S = sbBox.style; S.left = l + 'px'; S.top = t + 'px'; S.width = w + 'px'; S.height = h + 'px';
+    }
+    /* [SB4] إرسال لحظي: يُرسَل الخط أثناء الكتابة (كل ~80ms) لا عند رفع الإصبع */
+    function sbFlush(st, force) {
+        if (!st || !st.r) return; const now = Date.now(); if (!force && now - st.t < 80) return; st.t = now;
+        try { let pts = st.pts; if (pts.length > 600) { const k = pts.length / 600; pts = Array.from({ length: 600 }, (_, n) => st.pts[Math.floor(n * k)]); pts.push(st.pts[st.pts.length - 1]); }
+            st.r.set({ p: pts.map(q => q[0].toFixed(4) + ',' + q[1].toFixed(4)).join(';'), c: st.c, w: SB_W, a: +(penCv.width / Math.max(1, penCv.height)).toFixed(3), ts: now }); } catch (er) { }
+    }
+    function sbBuild() {
+        if (sbBox) return;
+        const st = document.createElement('style'); st.textContent =
+            '#sBoard{position:fixed;left:0;top:60vh;width:300px;height:33.3vh;z-index:55;background-color:#12170b;background-image:linear-gradient(rgba(190,210,120,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(190,210,120,.07) 1px,transparent 1px);background-size:20px 20px;border:3px solid #f59e0b;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.6);display:none;flex-direction:column;direction:rtl;box-sizing:border-box}' +
+            '#sBoard .sbh{cursor:move;touch-action:none;user-select:none;height:32px;flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:0 6px;background:linear-gradient(#64748b,#475569);color:#f1f5f9;font:700 12px Cairo,sans-serif;border-radius:6px 6px 0 0}' +
+            '#sBoard .sbh button{height:24px;min-width:30px;padding:0 6px;white-space:nowrap;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:3px;flex:0 0 auto;border-radius:6px;border:1px solid #94a3b8;background:#334155;color:#f1f5f9;font:700 12px Cairo,sans-serif;cursor:pointer}' +
+            '#sBoard .sbh button.on{background:#f59e0b;color:#1a1405;border-color:#fde047}#sBoard .sbh .sx{background:#7f1d1d;border-color:#fca5a5;margin-right:auto}' +
+            '#sBoard .sbc{flex:1;min-height:0;position:relative;overflow:hidden;border-radius:0 0 6px 6px}#penCv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}' +
+            '#sBoard .rz{position:absolute;z-index:5;touch-action:none}#sBoard .rz.n,#sBoard .rz.s{left:12px;right:12px;height:12px;cursor:ns-resize}#sBoard .rz.n{top:-6px}#sBoard .rz.s{bottom:-6px}' +
+            '#sBoard .rz.e,#sBoard .rz.w{top:12px;bottom:12px;width:12px;cursor:ew-resize}#sBoard .rz.e{right:-6px}#sBoard .rz.w{left:-6px}' +
+            '#sBoard .rz.ne,#sBoard .rz.nw,#sBoard .rz.se,#sBoard .rz.sw{width:20px;height:20px}#sBoard .rz.ne{top:-6px;right:-6px;cursor:nesw-resize}#sBoard .rz.nw{top:-6px;left:-6px;cursor:nwse-resize}#sBoard .rz.se{bottom:-6px;right:-6px;cursor:nwse-resize}#sBoard .rz.sw{bottom:-6px;left:-6px;cursor:nesw-resize}';
+        document.head.appendChild(st);
+        sbBox = document.createElement('div'); sbBox.id = 'sBoard';
+        sbBox.innerHTML = '<div class="sbh"><span>سبورتي</span><button id="sbPen" class="on" title="قلم">✏️ قلم</button><button id="sbEr" title="ممحاة">🧽 ممحاة</button><button id="sbClr" title="مسح الكل">🗑 مسح</button><button class="sx" id="sbX" title="إغلاق السبورة">✕</button></div><div class="sbc"><canvas id="penCv"></canvas></div>';
+        document.body.appendChild(sbBox); penCv = sbBox.querySelector('#penCv');
+        const rr = () => ref('studentInk/' + myId);
+        const npos = e => { const r = penCv.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
+        const eraseAt = q => { const rad = 0.035; let ch = false;
+            sbStrokes = sbStrokes.filter(st => { const hit = st.pts.some(p => Math.hypot((p[0] - q[0]) * penCv.width, (p[1] - q[1]) * penCv.height) < rad * penCv.width); if (hit) { ch = true; try { rr().child(st.key).remove(); } catch (er) { } } return !hit; });
+            if (ch) sbDraw(); };
+        penCv.addEventListener('pointerdown', e => { e.preventDefault(); penDown = true; try { penCv.setPointerCapture(e.pointerId); } catch (er) { } const q = npos(e); if (sbEraser) eraseAt(q); else { sbCur = { c: SB_COL, pts: [q], t: 0 }; try { const r0 = rr().push(); sbCur.r = r0; sbCur.key = r0.key; } catch (er) { } sbDraw(); sbFlush(sbCur, true); } });
+        penCv.addEventListener('pointermove', e => { if (!penDown) return; e.preventDefault(); const q = npos(e); if (sbEraser) eraseAt(q); else if (sbCur) { sbCur.pts.push(q); sbDraw(); sbFlush(sbCur, false); } });
+        const end = () => { if (!penDown) return; penDown = false; const st = sbCur; sbCur = null; if (!st || sbEraser) return;
+            sbStrokes.push(st); sbFlush(st, true);
+            sbDraw(); };
+        penCv.addEventListener('pointerup', end); penCv.addEventListener('pointercancel', end); penCv.addEventListener('lostpointercapture', end);
+        const setTool = er => { sbEraser = er; sbBox.querySelector('#sbEr').classList.toggle('on', er); sbBox.querySelector('#sbPen').classList.toggle('on', !er); };
+        sbBox.querySelector('#sbPen').onclick = () => setTool(false); sbBox.querySelector('#sbEr').onclick = () => setTool(true);
+        penCv.addEventListener('touchstart', e => e.preventDefault(), { passive: false }); penCv.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+        sbBox.querySelector('#sbClr').onclick = () => { sbStrokes = []; sbDraw(); try { rr().remove(); } catch (er) { } };
+        sbBox.querySelector('#sbX').onclick = () => setPen(false);
+        const hd = sbBox.querySelector('.sbh');
+        const act = (mode, e) => { e.preventDefault(); e.stopPropagation(); const sx = e.clientX, sy = e.clientY, o = { l: sbBox._l, t: sbBox._t, w: sbBox._w, h: sbBox._h }, R = sbRegion(), MINW = 170, MINH = 110;
+            const mv = ev => { const dx = ev.clientX - sx, dy = ev.clientY - sy; let l = o.l, t = o.t, w = o.w, h = o.h;
+                if (mode === 'move') { l += dx; t += dy; }
+                else { if (mode.includes('e')) w = Math.max(MINW, Math.min(R.r - o.l, o.w + dx)); if (mode.includes('s')) h = Math.max(MINH, Math.min(R.b - o.t, o.h + dy));
+                    if (mode.includes('w')) { w = Math.max(MINW, Math.min(o.l + o.w - R.l, o.w - dx)); l = o.l + o.w - w; } if (mode.includes('n')) { h = Math.max(MINH, Math.min(o.t + o.h - R.t, o.h - dy)); t = o.t + o.h - h; } }
+                Object.assign(sbBox, { _l: l, _t: t, _w: w, _h: h }); sbPlace(false); sbSize(); };
+            const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
+            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up); };
+        hd.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; act('move', e); });
+        ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(m => { const h = document.createElement('div'); h.className = 'rz ' + m; h.addEventListener('pointerdown', e => act(m, e)); sbBox.appendChild(h); });
+        window.addEventListener('resize', () => setTimeout(() => { sbPlace(false); sbSize(); }, 100)); window.addEventListener('orientationchange', () => setTimeout(sbSize, 300));
+    }
+    function setPen(on) {   /* إظهار/إخفاء السبورة فقط (الخطوط تبقى) */
+        penOn = on; const b = $('penBtn'); if (b) b.classList.toggle('pen-on', on);   /* [SB3] الزر ثابت «سبورة» (لا يتحوّل لقلم) */
+        if (on) sbBuild(); if (!sbBox) return;
+        sbBox.style.display = on ? 'flex' : 'none'; if (on) { if (sbBox._l == null) sbPlace(true); else sbPlace(false); setTimeout(sbSize, 30); }
+    }
+    function penWipe() {   /* المعلم أوقف القلم: إخفاء ومسح */
+        setPen(false); if (sbStrokes.length || penCv) { sbStrokes = []; sbCur = null; sbDraw(); try { ref('studentInk/' + myId).remove(); } catch (er) { } }
     }
     function applyVis() {
         const fileOk = !!(vis.file && fileMeta && fileMeta.n);
@@ -719,8 +800,8 @@
         if (!fileOk && viewMode === 'file') viewMode = 'board';
         $('fileBtn').style.display = 'none';
         viewMode = fileReady ? 'file' : 'board';
-        $('penBtn').style.display = tools.pen ? '' : 'none'; if (!tools.pen) setPen(false);
-        $('saveBtn').style.display = tools.save ? '' : 'none';
+        $('penBtn').style.display = ''; $('penBtn').classList.toggle('rail-off', !tools.pen); if (!tools.pen) penWipe();   /* [RL2] class بدل style (كانت قاعدة !important تُلغي الإخفاء) */
+        $('saveBtn').style.display = ''; $('saveBtn').classList.toggle('rail-off', !tools.save);
         if (!tools.save) $('saveMenu').style.display = 'none';
         const hide = viewMode === 'board' && !vis.board;
         $('hiddenMsg').style.display = hide ? 'flex' : 'none';
@@ -816,7 +897,7 @@
         if (!items.length) { toast('لا يوجد ما يُحفظ الآن', 'a'); return; }
         m.innerHTML = items.map(i => '<button data-k="' + i[0] + '">' + i[1] + '</button>').join('');
         const r = $('saveBtn').getBoundingClientRect();
-        m.style.display = 'flex'; m.style.left = Math.max(6, r.left) + 'px'; m.style.bottom = (window.innerHeight - r.top + 6) + 'px';
+        m.style.display = 'flex'; m.style.left = 'auto'; m.style.right = (window.innerWidth - r.left + 6) + 'px'; m.style.bottom = 'auto'; m.style.top = Math.max(6, r.top) + 'px';
     });
     $('saveMenu').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; $('saveMenu').style.display = 'none'; SAVE[b.dataset.k](); });
     document.addEventListener('click', () => { $('saveMenu').style.display = 'none'; });
@@ -1151,8 +1232,10 @@
             im.src = url;
         });
     }
-    f.addEventListener('change', async () => {
-        const file = f.files && f.files[0]; if (!file) return;
+    const sn = document.getElementById('snapFile'), sb = document.getElementById('snapBtn');   /* [RL3] كاميرا: التقاط صورة وإرسالها للمعلم */
+    if (sb && sn) { sb.addEventListener('click', () => { if (typeof approved !== 'undefined' && !approved) return; sn.value = ''; sn.click(); }); sn.addEventListener('change', () => { if (sn.files && sn.files[0]) sendFile(sn.files[0]); }); }
+    f.addEventListener('change', () => { if (f.files && f.files[0]) sendFile(f.files[0]); });
+    async function sendFile(file) {
         if (Date.now() - last < 8000) { toast('انتظر قليلًا قبل إرسال واجب آخر', 'a'); return; }
         try {
             let data, type;
@@ -1165,7 +1248,7 @@
             await ref('homework').push({ id: myId, name: myName, fname: String(file.name).slice(0, 80), type: type, data: data, ts: Date.now() });
             toast('✅ تم إرسال الواجب للمدرس');
         } catch (e) { toast('تعذر إرسال الواجب: ' + ((e && (e.code || e.message)) || ''), 'a'); }
-    });
+    }
 })();
 
 })();
@@ -1205,7 +1288,7 @@
         const v = a.muted ? 0 : Math.round((a.volume == null ? 1 : a.volume) * 100);
         p.innerHTML = '<span>🔈</span><input type="range" min="0" max="100" value="' + v + '"><b id="volVal">' + v + '</b>';
         document.body.appendChild(p);
-        const r = b.getBoundingClientRect(); p.style.left = Math.max(6, Math.min(innerWidth - p.offsetWidth - 6, r.left + r.width / 2 - p.offsetWidth / 2)) + 'px'; p.style.bottom = (innerHeight - r.top + 8) + 'px';
+        const r = b.getBoundingClientRect(); p.style.left = Math.max(6, r.left - p.offsetWidth - 8) + 'px'; p.style.bottom = 'auto'; p.style.top = Math.max(6, r.top) + 'px';
         const inp = p.querySelector('input');
         inp.oninput = () => {
             const x = +inp.value; a.volume = x / 100; a.muted = x === 0; p.querySelector('#volVal').textContent = x;
