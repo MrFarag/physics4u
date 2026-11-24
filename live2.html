@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MyClass - الطالب</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="student.css?v=36">
+</head>
+<body>
+
+<!-- ═══ شاشة الدخول ═══ -->
+<div id="entryScreen" class="entry-screen">
+  <div class="entry-card">
+    <div class="entry-logo">⚛️ MASTER PHYSICS</div>
+    <a href="index.html" id="homeLink" style="position:absolute;top:10px;right:14px;font-size:12px;color:#94a3b8;text-decoration:none">← الرئيسية</a>
+    <div class="entry-sub">WITH MR. FARAG | ONLINE LESSONS</div>
+    <div id="formPart">
+      <div class="entry-ttl">بيانات الطالب</div>
+      <!-- [EN1] ترتيب الدخول: الاسم ← رقم الواتس ← الصف (قائمة) ← صف واحد (البلد/المحافظة/القطر) ← الكود ← زر واحد ينقلب -->
+      <input type="text" id="studentName" class="entry-field" placeholder="الاسم (ثنائي على الأقل)" autocomplete="name">
+      <div class="wa-field">
+        <span>+20</span>
+        <input type="text" id="studentPhone" placeholder="رقم الواتس (1012345678)" inputmode="numeric">
+      </div>
+      <select id="studentGrade" class="entry-field">
+        <option value="">— اختر الصف الدراسي —</option>
+        <option value="2ث-عام">2 ثانوي - عام</option>
+        <option value="2ث-بكلوريا">2 ثانوي - بكلوريا</option>
+        <option value="3ث-عام">3 ثانوي - عام</option>
+        <option value="3ث-بكلوريا">3 ثانوي - بكلوريا</option>
+      </select>
+      <div class="entry-row3">
+        <input type="text" id="studentCountry" class="entry-field" placeholder="البلد" autocomplete="country-name">
+        <input type="text" id="studentGov" class="entry-field" placeholder="المحافظة" autocomplete="address-level1">
+        <input type="text" id="studentDistr" class="entry-field" placeholder="القطر" autocomplete="address-level2">
+      </div>
+      <input type="text" id="studentSecret" class="entry-field entry-code" placeholder="كود الاشتراك (إن وُجد)" autocomplete="off" style="direction:ltr;text-align:center;letter-spacing:2px;font-weight:700">
+      <div id="secretErr" class="entry-err"></div>
+      <div id="enNote" style="display:none;color:#fca5a5;font-size:12px;text-align:center;margin-top:6px"></div>
+      <!-- زر واحد فقط: ينقلب بين «دخول» و«طلب كود» حسب حالة الطالب -->
+      <button id="entryBtn" class="entry-btn entry-btn-single btn-request" type="button" data-mode="request">طلب كود</button>
+    </div>
+    <div id="waitPart" style="display:none">
+      <div class="entry-marquee-wrap">
+        <div class="entry-marquee">
+          بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ &nbsp;✦&nbsp; رَبِّ زِدْنِي عِلْمًا &nbsp;✦&nbsp;
+          العلم نور والجهل ظلام &nbsp;✦&nbsp; من جدَّ وجد ومن زرع حصد &nbsp;✦&nbsp;
+          اطلب العلم من المهد إلى اللحد &nbsp;✦&nbsp; بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ &nbsp;✦&nbsp;
+        </div>
+      </div>
+      <div class="wait-msg" id="waitMsg">⏳ بانتظار موافقة المدرس...</div>
+    </div>
+    <div class="entry-foot">واتساب: @MrFaragPhysics</div>
+  </div>
+</div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="top-bar">
+  <button class="bb" id="exitBtn" title="خروج من الحصة"><svg viewBox="0 0 24 24"><path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"/><polyline points="8 17 3 12 8 7"/><line x1="3" y1="12" x2="15" y2="12"/></svg></button>
+  <div class="brand"><a class="wa-btn" href="https://wa.me/201011418992" target="_blank" title="واتساب">💬</a><span class="brand-name" id="brandName"><span>Mr. Farag</span><span>Physics</span></span></div>
+  <div class="welcome" id="welcome"></div>
+  <div class="stats">
+    <span class="live"><i class="dot-live"></i>مباشر</span>
+    <span title="مدة وجودك في الحصة">🕒 <b id="sessionTimer">00:00</b></span>
+    <span title="الطلاب المتصلون" style="display:none">👥 <b id="cnt">0</b></span>
+  </div>
+</header>
+
+<!-- ═══ المنطقة الرئيسية ═══ -->
+<main class="main-area">
+  <aside class="side-bar" id="sideBar">
+    <div class="sb-head">المحتويات</div>
+    <div class="sb-courses" id="sbCourses"></div>
+    <div class="sb-msg">
+      <textarea id="sideText" maxlength="300" placeholder="اكتب رسالة للمدرس…"></textarea>
+      <div class="sb-btns">
+        <button type="button" class="sb-send" id="sideSend">Send</button>
+        <button type="button" class="sb-hw" id="hwBtn" title="إرسال واجب (صورة أو PDF)">📎 واجب</button>
+      </div>
+      <input type="file" id="hwFile" accept="image/*,application/pdf" style="display:none">
+    </div>
+  </aside>
+
+  <aside class="slides-panel" id="slidesPanel">
+    <div class="sp-head"><span>الشرائح</span><span class="sp-count" id="slidesCount">0</span></div>
+    <div class="sp-list" id="slidesList"></div>
+  </aside>
+
+  <section class="view-area">
+    <div class="view-wrap" id="viewWrap">
+      <div id="slideBox"><canvas id="baseCv"></canvas><canvas id="liveCv"></canvas></div>
+      <div class="view-empty" id="viewEmpty">⏳ بانتظار المدرس لبدء الشرح...</div>
+    </div>
+    <div class="file-view" id="fileView" style="display:none"><div class="fv-top"><span id="fvName"></span><span id="fvPg"></span></div><div class="fv-body" id="fvBody"><img id="fvImg" alt=""></div></div>
+    <div class="hidden-msg" id="hiddenMsg" style="display:none"><div><big>🙈</big>المدرس أخفى المحتوى مؤقتًا<small>الصوت مستمر — انتظر حتى يُظهره</small></div></div>
+    <button class="follow-btn" id="followBtn" type="button" style="display:none">↩ العودة لشريحة المدرس</button>
+  </section>
+</main>
+
+<!-- ═══ الشريط السفلي ═══ -->
+<footer class="bot">
+  <button class="bb" id="prevBtn" title="الشريحة السابقة">▶</button>
+  <span class="bb-txt"><b id="curNum">0</b> / <b id="totNum">0</b></span>
+  <button class="bb" id="nextBtn" title="الشريحة التالية">◀</button>
+  <span class="bb-sep"></span>
+  <span class="zoomgrp">
+  <button class="bb" id="zoomOut" title="تصغير">−</button>
+  <span class="bb-txt" id="zoomVal">100%</span>
+  <button class="bb" id="zoomIn" title="تكبير">+</button>
+  <button class="bb " id="fitBtn" title="تبديل: Fit / 100%"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg><span class="bl">Fit</span></button>
+  </span>
+  <button class="bb rail-off" id="penBtn" title="سبورة"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg><span class="bl">سبورة</span></button>
+  <button class="bb " id="snapBtn" title="التقاط صورة وإرسالها للمعلم"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="bl">تصوير</span></button>
+  <input type="file" id="snapFile" accept="image/*" capture="environment" style="display:none">
+  <span class="bb-sep"></span>
+  <button class="bb " id="fileBtn" title="التبديل بين السبورة والملف" style="display:none"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="bl">ملف</span></button>
+  <button class="bb rail-off" id="saveBtn" title="حفظ"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span class="bl">حفظ</span></button>
+  <button class="bb " id="spkBtn" title="سماعة: كتم/تشغيل صوت المدرس"><svg viewBox="0 0 24 24"><polygon class="spk-b" points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path class="spk-w" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="spk-w" d="M19 5a10 10 0 0 1 0 14"/></svg><span class="bl">سماعة</span></button>
+  <button class="bb " id="camBtn" title="إظهار/إخفاء كاميرتي">
+  <svg viewBox="0 0 24 24"><rect x="2" y="6" width="15" height="12" rx="2"/><path d="M17 10l5-3v10l-5-3z"/></svg>
+  <span class="bl">كاميرا</span>
+</button>
+
+<button class="bb bb-text" id="micBtn" title="اطلب المايك للتحدث"></button>
+  <button class="bb bb-msg" id="msgBtn" title="رسالة للمدرس"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><polyline points="22 7 12 13 2 7"/></svg><span class="bl">رسالة</span><i class="cb-badge" id="msgBadge"></i></button>
+  <button class="bb bb-hw" id="hwBtn2" title="إرسال واجب (صورة أو PDF)"><svg viewBox="0 0 24 24"><path d="M21.4 11.6 12.2 20.8a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg><span class="bl">واجب</span></button>
+  <button class="bb " id="sideBtn" title="المحتويات والرسائل"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg><span class="bl">محتويات</span></button>
+  <button class="bb " id="fsBtn" title="ملء الشاشة"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg><span class="bl">ملء</span></button>
+</footer>
+
+<div id="toastBox"></div>
+<div id="camOverlay" style="display:none">
+  <div class="cam-box">
+    <button class="cam-close" id="camClose" title="إغلاق">✕</button>
+    <video id="camPreview" autoplay playsinline muted></video>
+    <div class="cam-foot">
+      <span id="camState">الكاميرا مغلقة</span>
+      <button class="entry-btn" id="camToggle">تشغيل</button>
+    </div>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<div class="msg-modal" id="msgModal" style="display:none"><div class="msg-box"><div class="msg-t">رسالة إلى المدرس</div><textarea id="msgText" maxlength="300" placeholder="اكتب رسالتك هنا (حتى 300 حرف)…"></textarea><div class="msg-row"><span id="msgCnt">0/300</span><button class="entry-btn" id="msgSend" type="button">إرسال</button><button class="entry-btn msg-cancel" id="msgCancel" type="button">إغلاق</button></div></div></div>
+<div class="save-menu" id="saveMenu" style="display:none"></div>
+<audio id="audioEl" autoplay playsinline></audio>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="config.js?v=13"></script>
+<script>
+/* [PR3] وضع ولي الأمر: live.html?p=كود ⇒ صفحة نتائج فقط، ولا يعمل كود الطالب (نوقف تحميل بقية الملفات) */
+(function(){
+  var q=new URLSearchParams(location.search); if(!q.has('p')) return;
+  try{window.stop();}catch(e){}
+  var p=(q.get('p')||'').trim();
+  var B=document.body; Array.prototype.forEach.call(B.children,function(n){ if(n.tagName!=='SCRIPT') n.style.display='none'; });
+  var v=document.createElement('div'); v.id='parentView';
+  v.style.cssText='position:fixed;inset:0;z-index:2147483647;overflow:auto;background:linear-gradient(180deg,#1d0c3a,#12071f);color:#fdba74;font-family:Cairo,system-ui,sans-serif;direction:rtl;padding:18px 14px';
+  document.body.appendChild(v);
+  function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function ask(msg){
+    v.innerHTML='<div style="max-width:420px;margin:12vh auto;text-align:center"><h2 style="margin:0 0 6px;color:#fed7aa">نتائج الطالب</h2><div style="color:#c4b5d6;font-size:13px;margin-bottom:14px">'+(msg||'اكتب كود ولي الأمر')+'</div><input id="pvC" placeholder="الكود" style="width:70%;height:38px;border-radius:10px;border:1px solid rgba(253,186,116,.4);background:rgba(0,0,0,.3);color:#fdba74;text-align:center;font-size:16px;direction:ltr"><br><button id="pvB" style="margin-top:12px;height:36px;padding:0 24px;border-radius:10px;border:1px solid #fdba74;background:transparent;color:#fdba74;font-weight:700;cursor:pointer">عرض</button></div>';
+    document.getElementById('pvB').onclick=function(){var c=document.getElementById('pvC').value.trim(); if(c) location.search='?p='+encodeURIComponent(c);};
+  }
+  if(!p){ask();return;}
+  v.innerHTML='<div style="text-align:center;margin-top:20vh;color:#c4b5d6">جاري التحميل…</div>';
+  function go(n){
+    var db; try{db=firebase.database();}catch(e){ if(n<20) return setTimeout(function(){go(n+1);},250); v.innerHTML='<div style="text-align:center;margin-top:20vh">تعذّر الاتصال</div>'; return; }
+    db.ref('rooms/live/parentResults/'+p).on('value',function(s){
+      var d=s.val(); if(!d){ask('لا توجد نتائج لهذا الكود بعد');return;}
+      var rows=Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+      var nm=rows[0].n||'';
+      var h='<div style="max-width:560px;margin:0 auto"><h2 style="margin:0 0 4px;color:#fed7aa;text-align:center">نتائج الطالب</h2><div style="text-align:center;font-size:18px;margin-bottom:14px">'+esc(nm)+'</div>';
+      rows.forEach(function(r){
+        var dt=r.ts?new Date(r.ts):null, ds=dt?dt.getDate()+'/'+(dt.getMonth()+1)+'/'+dt.getFullYear():'';
+        h+='<div style="border:1px solid rgba(253,186,116,.28);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span style="flex:1 1 140px;font-weight:700">'+esc(r.t)+'</span><span>'+ds+'</span><span>الدرجة '+esc(r.sc)+' من '+esc(r.mx)+'</span>'+(r.el!=null&&r.d?'<span>الزمن '+esc(r.el)+' من '+esc(r.d)+' د</span>':'')+'</div>';
+      });
+      v.innerHTML=h+'</div>';
+    },function(){ask('تعذّرت قراءة النتائج');});
+  }
+  go(0);
+})();
+</script>
+<script src="home-data.js?v=12"></script>
+<script src="render.js?v=12"></script>
+<script src="chatbox.js?v=47"></script>
+<script src="projectile.js?v=5"></script>
+<script src="widgets-s.js?v=2"></script>
+<script src="video-s.js?v=1"></script>
+<script src="examview.js?v=22"></script>
+<script src="student.js?v=48"></script>
+<script src="student-cam.js?v=19"></script>
+
+
+<script>(function(){var r=new URLSearchParams(location.search).get("room");if(r)document.getElementById("homeLink").href="index.html?room="+encodeURIComponent(r);})();</script>
+</body>
+</html>
